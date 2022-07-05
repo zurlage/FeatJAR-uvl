@@ -14,7 +14,7 @@ public class UVLFeatureModelFormatTest {
 	@Test
 	public void main() {
 		Result<FeatureModel> featureModelResult = FileHandler.load(Paths.get(
-			"src/test/resources/testFeatureModels/Server.uvl"), new XMLFeatureModelFormat());
+			"src/test/resources/testFeatureModels/Server.uvl"), new UVLFeatureModelFormat());
 		assertTrue(featureModelResult.isPresent());
 	}
 }

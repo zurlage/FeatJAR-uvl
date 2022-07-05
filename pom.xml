@@ -26,6 +26,14 @@
 			<artifactId>uvl-parser</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
+		<!-- workaround for IntelliJ code assistance -->
+		<dependency>
+			<groupId>org.spldev</groupId>
+			<artifactId>uvl-parser-jar</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/../uvl-parser/target/uvl-parser-1.0-SNAPSHOT.jar</systemPath>
+		</dependency>
 	</dependencies>
 
 </project>
