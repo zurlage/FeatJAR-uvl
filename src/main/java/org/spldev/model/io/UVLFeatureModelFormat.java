@@ -23,17 +23,16 @@
 package org.spldev.model.io;
 
 import de.neominik.uvl.UVLParser;
-import de.neominik.uvl.ast.Feature;
 import de.neominik.uvl.ast.ParseError;
 import de.neominik.uvl.ast.UVLModel;
 import org.spldev.model.FeatureModel;
 import org.spldev.model.util.Identifier;
 import org.spldev.util.data.Problem;
 import org.spldev.util.data.Result;
+import org.spldev.util.io.file.InputFileMapper;
 import org.spldev.util.io.format.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -73,18 +72,18 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 	}
 
 	@Override
-	public Result<FeatureModel> parse(SourceMapper sourceMapper, Supplier<FeatureModel> supplier) {
+	public Result<FeatureModel> parse(InputFileMapper inputFileMapper, Supplier<FeatureModel> supplier) {
 		featureModel = supplier.get();
-		return parse(sourceMapper);
+		return parse(inputFileMapper);
 	}
 
 	@Override
-	public Result<FeatureModel> parse(SourceMapper sourceMapper) {
+	public Result<FeatureModel> parse(InputFileMapper inputFileMapper) {
 		if (featureModel != null)
 			featureModel = new FeatureModel(Identifier.newCounter());
 		parseProblems.clear();
 		try {
-			final Object result = UVLParser.parse(sourceMapper.getMainSource().readText().orElseThrow()); // todo
+			final Object result = UVLParser.parse(inputFileMapper.getMainFile().readText().orElseThrow()); // todo
 			if (result instanceof UVLModel) {
 				constructFeatureModel((UVLModel) result);
 			} else if (result instanceof ParseError) {
