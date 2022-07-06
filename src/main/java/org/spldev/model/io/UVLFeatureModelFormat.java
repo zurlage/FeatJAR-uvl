@@ -30,11 +30,7 @@ import org.spldev.model.FeatureModel;
 import org.spldev.model.util.Identifier;
 import org.spldev.util.data.Problem;
 import org.spldev.util.data.Result;
-import org.spldev.util.io.PositionalXMLHandler;
-import org.spldev.util.io.format.Format;
-import org.spldev.util.io.format.Input;
-import org.spldev.util.io.format.ParseException;
-import org.spldev.util.io.format.ParseProblem;
+import org.spldev.util.io.format.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,23 +73,23 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 	}
 
 	@Override
-	public Result<FeatureModel> parse(Input source, Supplier<FeatureModel> supplier) {
+	public Result<FeatureModel> parse(SourceMapper sourceMapper, Supplier<FeatureModel> supplier) {
 		featureModel = supplier.get();
-		return parse(source);
+		return parse(sourceMapper);
 	}
 
 	@Override
-	public Result<FeatureModel> parse(Input source) {
+	public Result<FeatureModel> parse(SourceMapper sourceMapper) {
 		if (featureModel != null)
 			featureModel = new FeatureModel(Identifier.newCounter());
 		parseProblems.clear();
 		try {
-			fm.setSourceFile(path);
-			final Object result = UVLParser.parse(source.getCompleteText().get(), path.getParent().toString());
+			final Object result = UVLParser.parse(sourceMapper.getMainSource().readText().orElseThrow()); // todo
 			if (result instanceof UVLModel) {
 				constructFeatureModel((UVLModel) result);
 			} else if (result instanceof ParseError) {
-				parseProblems.add(new ParseProblem(result.toString(), ((ParseError) result).getLine(), Problem.Severity.ERROR));
+				parseProblems.add(new ParseProblem(result.toString(), ((ParseError) result).getLine(),
+					Problem.Severity.ERROR));
 			}
 			return Result.of(featureModel, parseProblems);
 		} catch (final ParseException e) {
@@ -103,29 +99,29 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 		}
 	}
 
-	private void constructFeatureModel(UVLModel uvlModel) {
-		Arrays.stream(uvlModel.getImports()).forEach(i -> parseImport(fm, i));
-		IFeature root;
-		if (uvlModel.getRootFeatures().length == 1) {
-			final Feature f = uvlModel.getRootFeatures()[0];
-			root = parseFeature(fm, null, f, uvlModel);
-		} else {
-			String rootName = MULTI_ROOT_PREFIX + 0;
-			for (int i = 1; uvlModel.getAllFeatures().keySet().contains(rootName); i++) {
-				rootName = MULTI_ROOT_PREFIX + i;
-			}
-			root = factory.createFeature(fm, rootName);
-			root.getStructure().setAbstract(true);
-			root.getProperty().setImplicit(true);
-			fm.addFeature(root);
-			Arrays.stream(uvlModel.getRootFeatures()).forEachOrdered(f -> parseFeature(fm, root, f, uvlModel));
-			root.getStructure().getChildren().forEach(fs -> fs.setMandatory(true));
-		}
-		fm.getStructure().setRoot(root.getStructure());
-		final List<Object> ownConstraints = Arrays.asList(uvlModel.getOwnConstraints());
-		Arrays.stream(uvlModel.getConstraints()).filter(c -> !ownConstraints.contains(c)).forEach(c -> parseConstraint(fm, c));
-		ownConstraints.forEach(c -> parseOwnConstraint(fm, c));
-		fm.addAttribute(NS_ATTRIBUTE_FEATURE, NS_ATTRIBUTE_NAME, uvlModel.getNamespace());
+	private void constructFeatureModel(UVLModel uvlModel) throws ParseException {
+//		Arrays.stream(uvlModel.getImports()).forEach(i -> parseImport(fm, i));
+//		IFeature root;
+//		if (uvlModel.getRootFeatures().length == 1) {
+//			final Feature f = uvlModel.getRootFeatures()[0];
+//			root = parseFeature(fm, null, f, uvlModel);
+//		} else {
+//			String rootName = MULTI_ROOT_PREFIX + 0;
+//			for (int i = 1; uvlModel.getAllFeatures().keySet().contains(rootName); i++) {
+//				rootName = MULTI_ROOT_PREFIX + i;
+//			}
+//			root = factory.createFeature(fm, rootName);
+//			root.getStructure().setAbstract(true);
+//			root.getProperty().setImplicit(true);
+//			fm.addFeature(root);
+//			Arrays.stream(uvlModel.getRootFeatures()).forEachOrdered(f -> parseFeature(fm, root, f, uvlModel));
+//			root.getStructure().getChildren().forEach(fs -> fs.setMandatory(true));
+//		}
+//		fm.getStructure().setRoot(root.getStructure());
+//		final List<Object> ownConstraints = Arrays.asList(uvlModel.getOwnConstraints());
+//		Arrays.stream(uvlModel.getConstraints()).filter(c -> !ownConstraints.contains(c)).forEach(c -> parseConstraint(fm, c));
+//		ownConstraints.forEach(c -> parseOwnConstraint(fm, c));
+//		fm.addAttribute(NS_ATTRIBUTE_FEATURE, NS_ATTRIBUTE_NAME, uvlModel.getNamespace());
 	}
 
 //	private static final String NS_ATTRIBUTE_NAME = "namespace";

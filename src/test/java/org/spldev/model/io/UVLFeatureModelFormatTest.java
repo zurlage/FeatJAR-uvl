@@ -2,7 +2,6 @@ package org.spldev.model.io;
 
 import org.junit.jupiter.api.Test;
 import org.spldev.model.FeatureModel;
-import org.spldev.model.io.xml.XMLFeatureModelFormat;
 import org.spldev.util.data.Result;
 import org.spldev.util.io.FileHandler;
 
