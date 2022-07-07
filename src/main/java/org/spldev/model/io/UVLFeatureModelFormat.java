@@ -29,7 +29,7 @@ import org.spldev.model.FeatureModel;
 import org.spldev.model.util.Identifier;
 import org.spldev.util.data.Problem;
 import org.spldev.util.data.Result;
-import org.spldev.util.io.file.InputFileMapper;
+import org.spldev.util.io.InputMapper;
 import org.spldev.util.io.format.*;
 
 import java.util.ArrayList;
@@ -72,18 +72,18 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 	}
 
 	@Override
-	public Result<FeatureModel> parse(InputFileMapper inputFileMapper, Supplier<FeatureModel> supplier) {
+	public Result<FeatureModel> parse(InputMapper inputMapper, Supplier<FeatureModel> supplier) {
 		featureModel = supplier.get();
-		return parse(inputFileMapper);
+		return parse(inputMapper);
 	}
 
 	@Override
-	public Result<FeatureModel> parse(InputFileMapper inputFileMapper) {
+	public Result<FeatureModel> parse(InputMapper inputMapper) {
 		if (featureModel != null)
 			featureModel = new FeatureModel(Identifier.newCounter());
 		parseProblems.clear();
 		try {
-			final Object result = UVLParser.parse(inputFileMapper.getMainFile().readText().orElseThrow()); // todo
+			final Object result = UVLParser.parse(inputMapper.get().readText().orElseThrow()); // todo
 			if (result instanceof UVLModel) {
 				constructFeatureModel((UVLModel) result);
 			} else if (result instanceof ParseError) {
