@@ -1,3 +1,0 @@
-# uvl
-
-Universal Variability Language
