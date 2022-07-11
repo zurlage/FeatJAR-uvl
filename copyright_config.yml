@@ -1,9 +1,0 @@
-license:
-  name: lgpl
-  version: 3
-program:
-  name: UVL Lib
-  description: Universal Variability Language
-  authors: Elias Kuiter
-  url: https://github.com/ekuiter/uvl
-  year: 2022
