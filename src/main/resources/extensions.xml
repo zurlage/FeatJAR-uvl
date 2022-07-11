@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <extensions>
-    <point id="org.spldev.model.io.FeatureModelFormatManager">
-        <extension id="org.spldev.model.io.UVLFeatureModelFormat" />
+    <point id="de.featjar.model.io.FeatureModelFormatManager">
+        <extension id="de.featjar.model.io.UVLFeatureModelFormat" />
     </point>
 </extensions>

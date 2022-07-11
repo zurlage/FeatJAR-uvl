@@ -20,12 +20,12 @@
  * See <https://github.com/FeatJAR/uvl> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.model.io;
+package de.featjar.model.io;
 
 import org.junit.jupiter.api.Test;
-import org.spldev.model.FeatureModel;
-import org.spldev.util.data.Result;
-import org.spldev.util.io.IO;
+import de.featjar.model.FeatureModel;
+import de.featjar.util.data.Result;
+import de.featjar.util.io.IO;
 
 import java.nio.file.Paths;
 

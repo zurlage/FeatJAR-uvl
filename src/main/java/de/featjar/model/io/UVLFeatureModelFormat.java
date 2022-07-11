@@ -20,17 +20,20 @@
  * See <https://github.com/FeatJAR/uvl> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.model.io;
+package de.featjar.model.io;
 
+import de.featjar.util.io.format.Format;
+import de.featjar.util.io.format.ParseException;
+import de.featjar.util.io.format.ParseProblem;
 import de.neominik.uvl.UVLParser;
 import de.neominik.uvl.ast.ParseError;
 import de.neominik.uvl.ast.UVLModel;
-import org.spldev.model.FeatureModel;
-import org.spldev.model.util.Identifier;
-import org.spldev.util.data.Problem;
-import org.spldev.util.data.Result;
-import org.spldev.util.io.InputMapper;
-import org.spldev.util.io.format.*;
+import de.featjar.model.FeatureModel;
+import de.featjar.model.util.Identifier;
+import de.featjar.util.data.Problem;
+import de.featjar.util.data.Result;
+import de.featjar.util.io.InputMapper;
+import de.featjar.util.io.format.*;
 
 import java.util.ArrayList;
 import java.util.List;
