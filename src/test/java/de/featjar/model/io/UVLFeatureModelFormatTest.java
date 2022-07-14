@@ -22,6 +22,8 @@
  */
 package de.featjar.model.io;
 
+import de.featjar.model.io.xml.GraphVizFeatureModelFormat;
+import de.featjar.util.io.IOMapper;
 import org.junit.jupiter.api.Test;
 import de.featjar.model.FeatureModel;
 import de.featjar.util.data.Result;
@@ -35,7 +37,10 @@ public class UVLFeatureModelFormatTest {
 	@Test
 	public void main() {
 		Result<FeatureModel> featureModelResult = IO.load(Paths.get(
-			"src/test/resources/testFeatureModels/Server.uvl"), new UVLFeatureModelFormat());
+			"src/test/resources/single/Server.uvl"), new UVLFeatureModelFormat(), IOMapper.Options.INPUT_FILE_HIERARCHY);
+		System.out.println(featureModelResult.getProblems());
 		assertTrue(featureModelResult.isPresent());
+		GraphVizFeatureModelFormat.openInBrowser(featureModelResult.get());
+		System.out.println(featureModelResult.get().getConstraints());
 	}
 }
