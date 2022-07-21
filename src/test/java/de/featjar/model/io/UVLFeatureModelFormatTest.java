@@ -40,7 +40,7 @@ public class UVLFeatureModelFormatTest {
 			"src/test/resources/multi/Server.uvl"), new UVLFeatureModelFormat(), IOMapper.Options.INPUT_FILE_HIERARCHY);
 		System.out.println(featureModelResult.getProblems());
 		assertTrue(featureModelResult.isPresent());
-		//GraphVizFeatureModelFormat.openInBrowser(featureModelResult.get());
-		//System.out.println(featureModelResult.get().getConstraints());
+		// GraphVizFeatureModelFormat.openInBrowser(featureModelResult.get());
+		// System.out.println(featureModelResult.get().getConstraints());
 	}
 }

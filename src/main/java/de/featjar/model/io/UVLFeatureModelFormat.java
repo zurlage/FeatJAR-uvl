@@ -109,13 +109,14 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 			final Object result = UVLParser.parse(inputMapper.get().readText().orElseThrow(), namespace -> {
 				Path path = Paths.get(String.format("%s.%s", namespace.replace(".", "/"), getFileExtension()));
 				Optional<String> content = inputMapper.resolve(path)
-						.flatMap(inputMapper::get)
-						.map(Input::readText)
-						.flatMap(Result::toOptional);
+					.flatMap(inputMapper::get)
+					.map(Input::readText)
+					.flatMap(Result::toOptional);
 				if (content.isPresent())
 					return content.get();
 				else {
-					parseProblems.add(new Problem("could not parse UVL submodel for namespace " + namespace + " at " + path, Problem.Severity.WARNING));
+					parseProblems.add(new Problem("could not parse UVL submodel for namespace " + namespace + " at "
+						+ path, Problem.Severity.WARNING));
 					return null;
 				}
 			});
@@ -156,7 +157,8 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 //			root.getStructure().getChildren().forEach(fs -> fs.setMandatory(true));
 		}
 		final List<Object> ownConstraints = Arrays.asList(uvlModel.getOwnConstraints());
-		Arrays.stream(uvlModel.getConstraints()).filter(c -> !ownConstraints.contains(c)).forEach(c -> parseConstraint(c, false));
+		Arrays.stream(uvlModel.getConstraints()).filter(c -> !ownConstraints.contains(c)).forEach(c -> parseConstraint(
+			c, false));
 		ownConstraints.forEach(c -> parseConstraint(c, true));
 		featureModel.mutate().setAttributeValue(UVL_NAMESPACE, uvlModel.getNamespace());
 	}
@@ -164,49 +166,60 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 //	protected static final String EXTENDED_ATTRIBUTE_NAME = "extended__";
 //	private static final String MULTI_ROOT_PREFIX = "Abstract_";
 
-	private de.featjar.model.Feature parseFeature(Feature parentFeature, de.neominik.uvl.ast.Feature parsedFeature, UVLModel submodel) {
-		final de.neominik.uvl.ast.Feature resolvedFeature = (de.neominik.uvl.ast.Feature) UVLParser.resolve(parsedFeature, uvlModel);
+	private de.featjar.model.Feature parseFeature(Feature parentFeature, de.neominik.uvl.ast.Feature parsedFeature,
+		UVLModel submodel) {
+		final de.neominik.uvl.ast.Feature resolvedFeature = (de.neominik.uvl.ast.Feature) UVLParser.resolve(
+			parsedFeature, uvlModel);
 
 		boolean duplicateFeature = false;
-		if (featureModel.getFeatures().stream().anyMatch(feature -> feature.getName().equals(parsedFeature.getName()))) {
+		if (featureModel.getFeatures().stream().anyMatch(feature -> feature.getName().equals(parsedFeature
+			.getName()))) {
 			parseProblems.add(new Problem("Duplicate feature name " + parsedFeature.getName(), Problem.Severity.ERROR));
 			duplicateFeature = true;
 		}
 
 		// Validate imported feature
-		if ((parentFeature == null ? -1 : parentFeature.getName().lastIndexOf('.')) < parsedFeature.getName().lastIndexOf('.')) {
+		if ((parentFeature == null ? -1 : parentFeature.getName().lastIndexOf('.')) < parsedFeature.getName()
+			.lastIndexOf('.')) {
 			// Update current submodel or add an error if the feature does not exist
 			boolean invalid = true;
 			Optional<UVLModel> sub;
-			// Find submodel declaring the current feature, iterate in case a submodel has an imported root feature
+			// Find submodel declaring the current feature, iterate in case a submodel has
+			// an imported root feature
 			while ((sub = Arrays.stream(submodel.getSubmodels())
-					.filter(m -> Arrays.stream(m.getRootFeatures()).map(de.neominik.uvl.ast.Feature::getName).anyMatch(parsedFeature.getName()::equals)).findFirst()).isPresent()) {
+				.filter(m -> Arrays.stream(m.getRootFeatures()).map(de.neominik.uvl.ast.Feature::getName).anyMatch(
+					parsedFeature.getName()::equals)).findFirst()).isPresent()) {
 				submodel = sub.get();
 				invalid = false;
 			}
 			if (invalid) {
-				parseProblems.add(new Problem("Feature " + parsedFeature.getName() + " does not exist",  Problem.Severity.ERROR));
+				parseProblems.add(new Problem("Feature " + parsedFeature.getName() + " does not exist",
+					Problem.Severity.ERROR));
 			}
 
 			// Check for invalid attributes and child groups
 			if (!parsedFeature.getAttributes().isEmpty()) {
-				parseProblems.add(new Problem("Invalid attribute of imported feature " + parsedFeature.getName(),  Problem.Severity.ERROR));
+				parseProblems.add(new Problem("Invalid attribute of imported feature " + parsedFeature.getName(),
+					Problem.Severity.ERROR));
 			}
 			if (parsedFeature.getGroups().length != 0) {
-				parseProblems.add(new Problem("Invalid group of imported feature " + parsedFeature.getName(),  Problem.Severity.ERROR));
+				parseProblems.add(new Problem("Invalid group of imported feature " + parsedFeature.getName(),
+					Problem.Severity.ERROR));
 			}
 		}
 		final UVLModel finalSubmodel = submodel;
 
-		de.featjar.model.Feature newFeature = parentFeature == null ? featureModel.getRootFeature() : parentFeature.mutate().createFeatureBelow();
+		de.featjar.model.Feature newFeature = parentFeature == null ? featureModel.getRootFeature()
+			: parentFeature.mutate().createFeatureBelow();
 		newFeature.mutate(mutator -> {
 			mutator.setName(resolvedFeature.getName());
 			mutator.setAbstract(isAbstract(resolvedFeature));
 		});
 		if (parsedFeature.getName().contains(".")) {
-			//feature.setType(MultiFeature.TYPE_INTERFACE);
+			// feature.setType(MultiFeature.TYPE_INTERFACE);
 		}
-		if (!duplicateFeature) { // Don't process groups for duplicate feature names, as this can cause infinite recursion
+		if (!duplicateFeature) { // Don't process groups for duplicate feature names, as this can cause infinite
+									// recursion
 			Arrays.stream(parsedFeature.getGroups()).forEach(group -> parseGroup(newFeature, group, finalSubmodel));
 		}
 		parseAttributes(newFeature, parsedFeature);
@@ -226,23 +239,25 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 			} else {
 				group.setType("optional");
 				parseProblems.add(new Problem(
-						String.format("Failed to convert cardinality [%d..%d] to known group type at feature %s.", group.getLower(), group.getUpper(), parentFeature.getName()),
-						Problem.Severity.WARNING));
+					String.format("Failed to convert cardinality [%d..%d] to known group type at feature %s.", group
+						.getLower(), group.getUpper(), parentFeature.getName()),
+					Problem.Severity.WARNING));
 			}
 		}
-		final List<Feature> children = Stream.of(group.getChildren()).map(f -> parseFeature(parentFeature, f, submodel)).collect(Collectors.toList());
+		final List<Feature> children = Stream.of(group.getChildren()).map(f -> parseFeature(parentFeature, f, submodel))
+			.collect(Collectors.toList());
 		switch (group.getType()) {
-			case "or":
-				parentFeature.getFeatureTree().mutate().setOr();
-				break;
-			case "alternative":
-				parentFeature.getFeatureTree().mutate().setAlternative();
-				break;
-			case "optional":
-				break;
-			case "mandatory":
-				children.forEach(f -> f.getFeatureTree().mutate().setMandatory(true));
-				break;
+		case "or":
+			parentFeature.getFeatureTree().mutate().setOr();
+			break;
+		case "alternative":
+			parentFeature.getFeatureTree().mutate().setAlternative();
+			break;
+		case "optional":
+			break;
+		case "mandatory":
+			children.forEach(f -> f.getFeatureTree().mutate().setMandatory(true));
+			break;
 		}
 	}
 
@@ -251,7 +266,8 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 	}
 
 	private void parseAttributes(Feature feature, de.neominik.uvl.ast.Feature f) {
-		UVLParser.getAttributes(f).entrySet().stream().forEachOrdered(e -> parseAttribute(feature, e.getKey(), e.getValue()));
+		UVLParser.getAttributes(f).entrySet().stream().forEachOrdered(e -> parseAttribute(feature, e.getKey(), e
+			.getValue()));
 	}
 
 	protected void parseAttribute(Feature feature, String attributeKey, Object attributeValue) {
@@ -265,7 +281,7 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 	}
 
 	private void parseConstraint(Object c, boolean own) {
-		//todo: use identifier in formula, not c
+		// todo: use identifier in formula, not c
 //		final Formula formula = parseConstraint(c);
 //		if (formula != null) {
 //			final Constraint newConstraint = featureModel.mutate().createConstraint(formula);
@@ -286,9 +302,11 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 		} else if (c instanceof de.neominik.uvl.ast.Not) {
 			return new Not(parseConstraint(((de.neominik.uvl.ast.Not) c).getChild()));
 		} else if (c instanceof de.neominik.uvl.ast.And) {
-			return new And(parseConstraint(((de.neominik.uvl.ast.And) c).getLeft()), parseConstraint(((de.neominik.uvl.ast.And) c).getRight()));
+			return new And(parseConstraint(((de.neominik.uvl.ast.And) c).getLeft()), parseConstraint(
+				((de.neominik.uvl.ast.And) c).getRight()));
 		} else if (c instanceof de.neominik.uvl.ast.Or) {
-			return new Or(parseConstraint(((de.neominik.uvl.ast.Or) c).getLeft()), parseConstraint(((de.neominik.uvl.ast.Or) c).getRight()));
+			return new Or(parseConstraint(((de.neominik.uvl.ast.Or) c).getLeft()), parseConstraint(
+				((de.neominik.uvl.ast.Or) c).getRight()));
 		} else if (c instanceof Impl) {
 			return new Implies(parseConstraint(((Impl) c).getLeft()), parseConstraint(((Impl) c).getRight()));
 		} else if (c instanceof Equiv) {
@@ -299,13 +317,14 @@ public class UVLFeatureModelFormat implements Format<FeatureModel> {
 
 	private void checkReferenceValid(String name) {
 		if (featureModel.getFeaturesByName(name).isEmpty()) {
-			parseProblems.add(new Problem("Invalid reference: Feature " + name + " doesn't exist", Problem.Severity.ERROR));
+			parseProblems.add(new Problem("Invalid reference: Feature " + name + " doesn't exist",
+				Problem.Severity.ERROR));
 			throw new RuntimeException("Invalid reference");
 		}
 	}
 
 	private void parseImport(Import i) {
-		//fm.addInstance(i.getNamespace(), i.getAlias());
+		// fm.addInstance(i.getNamespace(), i.getAlias());
 	}
 //
 //	/**
