@@ -1,0 +1,22 @@
+plugins {
+    id 'de.featjar.java-library'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://repo.clojars.org/'
+    }
+}
+
+dependencies {
+    api 'de.featjar:model'
+    api 'de.neominik:uvl-parser'
+}
+
+license {
+    ext {
+        author = 'Elias Kuiter'
+        url = 'https://github.com/FeatJAR/uvl'
+    }
+}

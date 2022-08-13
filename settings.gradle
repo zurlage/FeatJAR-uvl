@@ -1,0 +1,6 @@
+pluginManagement {
+    includeBuild '../gradle-plugins'
+}
+
+includeBuild '../model'
+includeBuild '../uvl-parser'
