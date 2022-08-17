@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    api 'de.featjar:model'
+    api 'de.featjar:feature-modeling'
     api 'de.neominik:uvl-parser'
 }
 
