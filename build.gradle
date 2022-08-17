@@ -17,6 +17,6 @@ dependencies {
 license {
     ext {
         author = 'Elias Kuiter'
-        url = 'https://github.com/FeatJAR/uvl'
+        url = 'https://github.com/FeatureIDE/FeatJAR-uvl'
     }
 }
