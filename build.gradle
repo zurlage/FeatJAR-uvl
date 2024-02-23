@@ -2,21 +2,14 @@ plugins {
     id 'de.featjar.java-library'
 }
 
-repositories {
-    mavenCentral()
-    maven {
-        url = 'https://repo.clojars.org/'
-    }
-}
-
 dependencies {
-    api 'de.featjar:feature-modeling'
-    api 'de.neominik:uvl-parser'
+    api 'de.featjar:formula'
+    api 'de.featjar:feature-model'
+	implementation group: 'io.github.universal-variability-language', name: 'fm-metamodel', version: '1.0'
 }
 
 license {
     ext {
-        author = 'Elias Kuiter'
         url = 'https://github.com/FeatureIDE/FeatJAR-uvl'
     }
 }

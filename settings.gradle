@@ -2,5 +2,5 @@ pluginManagement {
     includeBuild '../gradle-plugins'
 }
 
-includeBuild '../feature-modeling'
-includeBuild '../uvl-parser'
+includeBuild '../formula'
+includeBuild '../feature-model'
