@@ -21,6 +21,7 @@
 package de.featjar.feature.model.io.uvl;
 
 import de.featjar.base.FeatJAR;
+import de.featjar.base.data.Problem;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
@@ -28,10 +29,7 @@ import de.featjar.base.io.format.ParseException;
 import de.featjar.base.io.input.AInputMapper;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.TreePrinter;
-import de.featjar.feature.model.FeatureModel;
-import de.featjar.feature.model.IFeature;
-import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.*;
 import de.featjar.formula.io.textual.ExpressionParser;
 import de.featjar.formula.io.textual.ExpressionParser.ErrorHandling;
 import de.featjar.formula.io.textual.ShortSymbols;
@@ -40,8 +38,7 @@ import de.featjar.formula.structure.formula.IFormula;
 import de.vill.main.UVLModelFactory;
 import de.vill.model.FeatureType;
 import de.vill.model.constraint.Constraint;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Parses and writes feature models from and to UVL files.
@@ -56,6 +53,7 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
             String content = inputMapper.get().text();
             UVLModelFactory uvlModelFactory = new UVLModelFactory();
             de.vill.model.FeatureModel uvlModel = uvlModelFactory.parse(content);
+
             // TODO do not use raw constructor, get instance for IFeatureModel
             IFeatureModel featureModel = new FeatureModel();
             de.vill.model.Feature rootFeature = uvlModel.getRootFeature();
@@ -81,6 +79,45 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
                 featureModel.mutate().addConstraint((IFormula) parse.get());
             }
             return Result.of(featureModel);
+        } catch (Exception e) {
+            return Result.empty(e);
+        }
+    }
+
+    @Override
+    public Result<String> serialize(IFeatureModel fm) {
+        List<Problem> problems = new ArrayList<>(); // problem create problem set
+        try {
+            if (fm.getRootFeatures().isEmpty()) {
+                problems.add(new Problem("No root features exist.", Problem.Severity.ERROR));
+                return Result.empty(problems);
+            }
+
+            IFeature rootFeature = fm.getRootFeatures().get(0);
+            problems.add(new Problem("UVL supports only one root feature. If there are more than one root features in the model, the first one will be used.", Problem.Severity.WARNING));
+
+            Result<IFeatureTree> featureTree = fm.getFeatureTree(rootFeature);
+            problems.addAll(featureTree.getProblems());
+            if (featureTree.isEmpty()) {
+                return Result.empty(problems);
+            }
+
+            Result<de.vill.model.FeatureModel> uvlModel = Trees.traverse(featureTree.get(), new FeatureTreeVisitor());
+            problems.addAll(uvlModel.getProblems());
+            if (uvlModel.isEmpty()) {
+                return Result.empty(problems);
+            }
+
+            for (IConstraint constraint : fm.getConstraints()) {
+                Result<de.vill.model.constraint.Constraint> uvlConstraint = Trees.traverse(constraint.getFormula(), new ConstraintTreeVisitor());
+                problems.addAll(uvlConstraint.getProblems());
+                if (uvlConstraint.isEmpty()) {
+                    return Result.empty(problems);
+                }
+                uvlModel.get().getConstraints().add(uvlConstraint.get());
+            }
+
+            return Result.of(uvlModel.toString(), problems);
         } catch (Exception e) {
             return Result.empty(e);
         }
@@ -185,7 +222,7 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
 
     @Override
     public boolean supportsSerialize() {
-        return false;
+        return true;
     }
 
     @Override

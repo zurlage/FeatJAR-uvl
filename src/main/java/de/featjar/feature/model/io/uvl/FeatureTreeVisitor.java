@@ -1,0 +1,133 @@
+package de.featjar.feature.model.io.uvl;
+
+import de.featjar.base.data.Result;
+import de.featjar.base.io.format.ParseException;
+import de.featjar.base.tree.visitor.ITreeVisitor;
+import de.featjar.feature.model.Attributes;
+import de.featjar.feature.model.FeatureTree;
+import de.featjar.feature.model.IFeature;
+import de.featjar.feature.model.IFeatureTree;
+import de.vill.model.Attribute;
+import de.vill.model.FeatureModel;
+import de.vill.model.Group;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static de.vill.model.FeatureType.*;
+import static de.vill.model.FeatureType.STRING;
+
+public class FeatureTreeVisitor implements ITreeVisitor<IFeatureTree, de.vill.model.FeatureModel> {
+
+    private de.vill.model.FeatureModel uvlModel;
+
+    public FeatureTreeVisitor() {
+        reset();
+    }
+
+    @Override
+    public void reset() {
+        uvlModel = new de.vill.model.FeatureModel();
+    }
+
+    @Override
+    public Result<FeatureModel> getResult() {
+        return Result.of(uvlModel);
+    }
+
+    @Override
+    public TraversalAction lastVisit(List<IFeatureTree> path) {
+        final IFeatureTree node = ITreeVisitor.getCurrentNode(path);
+
+        String[] namespaceAndName = getUVLNamespaceAndName(node.getFeature());
+        String name;
+        String namespace = "";
+        if (namespaceAndName.length == 1) {
+            name = namespaceAndName[0];
+        } else if (namespaceAndName.length == 2) {
+            namespace = namespaceAndName[0];
+            name = namespaceAndName[1];
+        } else {
+            return TraversalAction.FAIL;
+        }
+
+        de.vill.model.Feature uvlFeature = new de.vill.model.Feature(name);
+        uvlFeature.setNameSpace(namespace);
+        uvlFeature.getAttributes().put("abstract", new Attribute<>("abstract", node.getFeature().isAbstract()));
+        try {
+            uvlFeature.setFeatureType(getUVLFeatureType(node.getFeature()));
+        } catch (ParseException e) {
+            return TraversalAction.FAIL;
+        }
+
+        node
+                .getFeature().getAttributes().orElseThrow().entrySet().stream()
+                .filter((entry) -> !entry.getKey().equals(Attributes.ABSTRACT))
+                .forEach(entry ->
+                    uvlFeature.getAttributes().put(entry.getKey().getName(), new Attribute<>(entry.getKey().getName(), entry.getValue()))
+                );
+
+        FeatureTree.Group group = node.getGroup();
+
+        de.vill.model.Group uvlGroup = new de.vill.model.Group(getUVLGroupType(group, node));
+        uvlGroup.setParentFeature(uvlFeature);
+        uvlGroup.setLowerBound(String.valueOf(group.getLowerBound()));
+        uvlGroup.setUpperBound(String.valueOf(group.getUpperBound()));
+        uvlGroup.getFeatures().addAll(getUVLChildrenFeatures(node.getChildren()));
+        uvlFeature.addChildren(uvlGroup);
+        uvlModel.getFeatureMap().put(name, uvlFeature);
+
+        return TraversalAction.CONTINUE;
+    }
+
+    private List<de.vill.model.Feature> getUVLChildrenFeatures(List<? extends IFeatureTree> features) {
+        List<de.vill.model.Feature> children = new ArrayList<>();
+        features.forEach((feature) -> {
+            de.vill.model.Feature uvlFeature = uvlModel.getFeatureMap().get(feature.getFeature().getName().orElseThrow());
+            children.add(uvlFeature);
+        });
+        return children;
+    }
+
+    private String[] getUVLNamespaceAndName(IFeature feature) {
+        return feature.getName().orElseThrow().split("::");
+    }
+
+    private Group.GroupType getUVLGroupType(FeatureTree.Group group, IFeatureTree node) {
+        if (group.isOr()) {
+            return Group.GroupType.OR;
+        }
+        if (group.isAnd()) {
+            if (node.isOptional()) {
+                return Group.GroupType.OPTIONAL;
+            }
+            if (node.isMandatory()) {
+                return Group.GroupType.MANDATORY;
+            }
+        }
+        if (group.isAlternative()) {
+            return Group.GroupType.ALTERNATIVE;
+        }
+        if (group.isCardinalityGroup()) {
+            return Group.GroupType.GROUP_CARDINALITY;
+        }
+
+        return Group.GroupType.OPTIONAL;
+    }
+
+    private de.vill.model.FeatureType getUVLFeatureType(IFeature feature) throws ParseException {
+        Class<?> featureType = feature.getType();
+        if (featureType == null)
+            return BOOL;
+        else if (featureType == Boolean.class)
+            return BOOL;
+        else if (featureType == Integer.class)
+            return INT;
+        else if (featureType == Double.class)
+            return REAL;
+        else if (featureType == String.class)
+            return STRING;
+        else
+            throw new ParseException(featureType.getName());
+    }
+}
