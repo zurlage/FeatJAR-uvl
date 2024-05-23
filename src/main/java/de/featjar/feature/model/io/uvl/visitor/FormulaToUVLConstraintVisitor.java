@@ -1,4 +1,4 @@
-package de.featjar.feature.model.io.uvl;
+package de.featjar.feature.model.io.uvl.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ConstraintTreeVisitor implements ITreeVisitor<IFormula, Constraint> {
+public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Constraint> {
 
     private Map<IExpression, Constraint> uvlConstraints;
     private Constraint rootConstraint;
 
-    public ConstraintTreeVisitor() {
+    public FormulaToUVLConstraintVisitor() {
         reset();
     }
 
@@ -69,7 +69,7 @@ public class ConstraintTreeVisitor implements ITreeVisitor<IFormula, Constraint>
         }
         if (constraint == null) return TraversalAction.FAIL;
         uvlConstraints.put(node, constraint);
-        rootConstraint = uvlConstraints.get(node);
+        rootConstraint = constraint;
         return TraversalAction.CONTINUE;
     }
 

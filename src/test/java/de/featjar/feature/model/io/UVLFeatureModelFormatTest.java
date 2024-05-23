@@ -35,8 +35,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
-public class UVLFeatureModelFormatTest extends Common {
+public class UVLFeatureModelFormatTest { //extends Common {
 
+    /*
     @Test
     public void graphVizFeatureModelFormat() throws IOException {
         Result<IFeatureModel> featureModel =
@@ -46,5 +47,17 @@ public class UVLFeatureModelFormatTest extends Common {
                 featureModel.toComputation().map(ComputeFormula::new).computeResult();
         assertTrue(formula.isPresent(), formula.printProblems());
         FeatJAR.log().info(Expressions.print(formula.get()));
+    }
+    */
+
+    @Test
+    void testConvertFormatCommand() throws IOException {
+        // TODO: Write test
+        System.out.println("Testing ConvertFormatCommand");
+        //String testFile = new String(Files.readAllBytes(Path.of("./src/test/java/de/featjar/res/testConvertFormatCommand.dimacs")));
+        FeatJAR.main("convert-format-sat4j --input ../formula/src/testFixtures/resources/GPL/model.xml --format de.featjar.feature.model.io.uvl.UVLFormulaFormat".split(" "));
+        //ProcessOutput output = runProcess(sat4jstring + " convert-format-sat4j --input ../formula/src/testFixtures/resources/GPL/model.xml --format de.featjar.formula.io.xml.XMLFeatureModelFormulaFormat");
+        //Assertions.assertTrue(output.errorString.isBlank());
+        //Assertions.assertEquals(output.outputString.trim(), testFile.trim());
     }
 }

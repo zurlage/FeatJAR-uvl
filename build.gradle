@@ -7,6 +7,7 @@ dependencies {
     api 'de.featjar:feature-model'
 	implementation group: 'io.github.universal-variability-language', name: 'fm-metamodel', version: '1.0'
     implementation testFixtures('de.featjar:formula')
+    testImplementation 'de.featjar:formula-analysis-sat4j'
 }
 
 license {
