@@ -26,11 +26,10 @@ import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.AInputMapper;
 import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.*;
-import de.featjar.feature.model.io.uvl.visitor.FormulaToUVLConstraintVisitor;
 import de.featjar.feature.model.io.uvl.visitor.FeatureTreeToUVLFeatureModelVisitor;
+import de.featjar.feature.model.io.uvl.visitor.FormulaToUVLConstraintVisitor;
 import de.featjar.formula.structure.formula.IFormula;
 import de.vill.main.UVLModelFactory;
-
 import java.util.*;
 
 /**
@@ -68,7 +67,9 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
             }
 
             IFeature rootFeature = fm.getRootFeatures().get(0);
-            problems.add(new Problem("UVL supports only one root feature. If there are more than one root features in the model, the first one will be used.", Problem.Severity.WARNING));
+            problems.add(new Problem(
+                    "UVL supports only one root feature. If there are more than one root features in the model, the first one will be used.",
+                    Problem.Severity.WARNING));
 
             Result<IFeatureTree> featureTree = fm.getFeatureTree(rootFeature);
             problems.addAll(featureTree.getProblems());
@@ -76,14 +77,16 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
                 return Result.empty(problems);
             }
 
-            Result<de.vill.model.FeatureModel> uvlModel = Trees.traverse(featureTree.get(), new FeatureTreeToUVLFeatureModelVisitor());
+            Result<de.vill.model.FeatureModel> uvlModel =
+                    Trees.traverse(featureTree.get(), new FeatureTreeToUVLFeatureModelVisitor());
             problems.addAll(uvlModel.getProblems());
             if (uvlModel.isEmpty()) {
                 return Result.empty(problems);
             }
 
             for (IConstraint constraint : fm.getConstraints()) {
-                Result<de.vill.model.constraint.Constraint> uvlConstraint = Trees.traverse(constraint.getFormula(), new FormulaToUVLConstraintVisitor());
+                Result<de.vill.model.constraint.Constraint> uvlConstraint =
+                        Trees.traverse(constraint.getFormula(), new FormulaToUVLConstraintVisitor());
                 problems.addAll(uvlConstraint.getProblems());
                 if (uvlConstraint.isEmpty()) {
                     return Result.empty(problems);

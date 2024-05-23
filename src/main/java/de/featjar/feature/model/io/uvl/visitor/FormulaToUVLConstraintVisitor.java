@@ -7,7 +7,6 @@ import de.featjar.formula.structure.formula.IFormula;
 import de.featjar.formula.structure.formula.connective.*;
 import de.featjar.formula.structure.formula.predicate.Literal;
 import de.vill.model.constraint.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,8 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
             if (literal.isPositive()) {
                 return new LiteralConstraint(literal.getChildren().get(0).getName());
             } else {
-                return new NotConstraint(new LiteralConstraint(literal.getChildren().get(0).getName()));
+                return new NotConstraint(
+                        new LiteralConstraint(literal.getChildren().get(0).getName()));
             }
         }
         return null;
@@ -89,8 +89,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
         if (node.getChildren().size() > 1) {
             return new EquivalenceConstraint(
                     uvlConstraints.get(node.getChildren().get(0)),
-                    uvlConstraints.get(node.getChildren().get(1))
-            );
+                    uvlConstraints.get(node.getChildren().get(1)));
         }
         return null;
     }
@@ -99,8 +98,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
         if (node.getChildren().size() > 1) {
             return new ImplicationConstraint(
                     uvlConstraints.get(node.getChildren().get(0)),
-                    uvlConstraints.get(node.getChildren().get(1))
-            );
+                    uvlConstraints.get(node.getChildren().get(1)));
         }
         return null;
     }
@@ -113,7 +111,9 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
     }
 
     private Constraint createAndConstraint(IFormula node) {
-        List<Constraint> constraints = node.getChildren().stream().map((child) -> uvlConstraints.get(child)).collect(Collectors.toList());
+        List<Constraint> constraints = node.getChildren().stream()
+                .map((child) -> uvlConstraints.get(child))
+                .collect(Collectors.toList());
         return createAndConstraint(constraints);
     }
 
@@ -134,7 +134,9 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
     }
 
     private Constraint createOrConstraint(IFormula node) {
-        List<Constraint> constraints = node.getChildren().stream().map((child) -> uvlConstraints.get(child)).collect(Collectors.toList());
+        List<Constraint> constraints = node.getChildren().stream()
+                .map((child) -> uvlConstraints.get(child))
+                .collect(Collectors.toList());
         return createOrConstraint(constraints);
     }
 

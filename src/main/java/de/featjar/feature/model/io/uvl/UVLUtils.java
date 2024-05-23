@@ -20,7 +20,6 @@ import de.featjar.formula.structure.formula.connective.Not;
 import de.featjar.formula.structure.formula.connective.Or;
 import de.vill.model.FeatureType;
 import de.vill.model.constraint.Constraint;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,8 +66,8 @@ public class UVLUtils {
         return feature;
     }
 
-    public static void createFeatureTree(IFeatureModel featureModel, de.vill.model.Feature parentFeature, IFeatureTree tree)
-            throws ParseException {
+    public static void createFeatureTree(
+            IFeatureModel featureModel, de.vill.model.Feature parentFeature, IFeatureTree tree) throws ParseException {
         if (parentFeature.getLowerBound() != null) {
             if (parentFeature.getUpperBound() != null) {
                 tree.mutate()

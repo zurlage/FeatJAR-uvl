@@ -20,22 +20,11 @@
  */
 package de.featjar.feature.model.io;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import de.featjar.Common;
 import de.featjar.base.FeatJAR;
-import de.featjar.base.data.Result;
-import de.featjar.base.io.IO;
-import de.featjar.feature.model.IFeatureModel;
-import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
-import de.featjar.feature.model.transformer.ComputeFormula;
-import de.featjar.formula.structure.Expressions;
-import de.featjar.formula.structure.formula.IFormula;
 import java.io.IOException;
-import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
-public class UVLFeatureModelFormatTest { //extends Common {
+public class UVLFeatureModelFormatTest { // extends Common {
 
     /*
     @Test
@@ -54,10 +43,15 @@ public class UVLFeatureModelFormatTest { //extends Common {
     void testConvertFormatCommand() throws IOException {
         // TODO: Write test
         System.out.println("Testing ConvertFormatCommand");
-        //String testFile = new String(Files.readAllBytes(Path.of("./src/test/java/de/featjar/res/testConvertFormatCommand.dimacs")));
-        FeatJAR.main("convert-format-sat4j --input ../formula/src/testFixtures/resources/GPL/model.xml --format de.featjar.feature.model.io.uvl.UVLFormulaFormat".split(" "));
-        //ProcessOutput output = runProcess(sat4jstring + " convert-format-sat4j --input ../formula/src/testFixtures/resources/GPL/model.xml --format de.featjar.formula.io.xml.XMLFeatureModelFormulaFormat");
-        //Assertions.assertTrue(output.errorString.isBlank());
-        //Assertions.assertEquals(output.outputString.trim(), testFile.trim());
+        // String testFile = new
+        // String(Files.readAllBytes(Path.of("./src/test/java/de/featjar/res/testConvertFormatCommand.dimacs")));
+        FeatJAR.main(
+                "convert-format-sat4j --input ../formula/src/testFixtures/resources/GPL/model.xml --format de.featjar.feature.model.io.uvl.UVLFormulaFormat"
+                        .split(" "));
+        // ProcessOutput output = runProcess(sat4jstring + " convert-format-sat4j --input
+        // ../formula/src/testFixtures/resources/GPL/model.xml --format
+        // de.featjar.formula.io.xml.XMLFeatureModelFormulaFormat");
+        // Assertions.assertTrue(output.errorString.isBlank());
+        // Assertions.assertEquals(output.outputString.trim(), testFile.trim());
     }
 }

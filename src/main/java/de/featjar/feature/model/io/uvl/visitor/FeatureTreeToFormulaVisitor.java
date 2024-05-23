@@ -13,11 +13,9 @@ import de.featjar.formula.structure.formula.connective.Implies;
 import de.featjar.formula.structure.formula.connective.Or;
 import de.featjar.formula.structure.formula.predicate.Literal;
 import de.featjar.formula.structure.formula.predicate.True;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, IFormula> {
 
