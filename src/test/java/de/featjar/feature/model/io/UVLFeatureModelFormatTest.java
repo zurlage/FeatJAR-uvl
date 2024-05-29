@@ -46,7 +46,7 @@ public class UVLFeatureModelFormatTest { // extends Common {
         // String testFile = new
         // String(Files.readAllBytes(Path.of("./src/test/java/de/featjar/res/testConvertFormatCommand.dimacs")));
         FeatJAR.main(
-                "convert-format-sat4j --input ../formula/src/testFixtures/resources/GPL/model.xml --format de.featjar.feature.model.io.uvl.UVLFormulaFormat"
+                "convert-format --input ./src/test/resources/xml/test.xml --format de.featjar.feature.model.io.uvl.UVLFormulaFormat"
                         .split(" "));
         // ProcessOutput output = runProcess(sat4jstring + " convert-format-sat4j --input
         // ../formula/src/testFixtures/resources/GPL/model.xml --format

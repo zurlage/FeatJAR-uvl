@@ -13,6 +13,8 @@ import de.vill.main.UVLModelFactory;
 import de.vill.model.Attribute;
 import de.vill.model.Feature;
 import de.vill.model.Group;
+import de.vill.model.constraint.Constraint;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +53,7 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
         uvlModel.setRootFeature(uvlRootFeature);
         uvlModel.getFeatureMap().put(ROOT_FEATURE_NAME, uvlRootFeature);
 
-        de.vill.model.Group uvlRootGroup = new Group(Group.GroupType.OR);
+        de.vill.model.Group uvlRootGroup = new Group(Group.GroupType.OPTIONAL);
         uvlRootFeature.addChildren(uvlRootGroup);
 
         formula.getVariableNames().forEach((variableName) -> {
@@ -66,7 +68,8 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
         if (uvlConstraint.isEmpty()) {
             return Result.empty(problems);
         }
-        uvlModel.getConstraints().add(uvlConstraint.get());
+
+        uvlModel.getOwnConstraints().add(uvlConstraint.get());
         return Result.of(uvlModel.toString(), problems);
     }
 

@@ -6,13 +6,14 @@ import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.formula.IFormula;
 import de.featjar.formula.structure.formula.connective.*;
 import de.featjar.formula.structure.formula.predicate.Literal;
+import de.featjar.formula.structure.term.value.Variable;
 import de.vill.model.constraint.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Constraint> {
+public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, Constraint> {
 
     private Map<IExpression, Constraint> uvlConstraints;
     private Constraint rootConstraint;
@@ -36,43 +37,45 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
     }
 
     @Override
-    public TraversalAction lastVisit(List<IFormula> path) {
-        final IFormula node = ITreeVisitor.getCurrentNode(path);
+    public TraversalAction lastVisit(List<IExpression> path) {
+        final IExpression node = ITreeVisitor.getCurrentNode(path);
 
-        Constraint constraint;
+        Constraint constraint = null;
 
-        if (node.getType() == And.class) {
+        if (node instanceof And) {
             constraint = createAndConstraint(node);
-        } else if (node.getType() == AtLeast.class) {
+        } else if (node instanceof AtLeast) {
             return TraversalAction.FAIL;
-        } else if (node.getType() == AtMost.class) {
+        } else if (node instanceof AtMost) {
             return TraversalAction.FAIL;
-        } else if (node.getType() == Between.class) {
+        } else if (node instanceof Between) {
             return TraversalAction.FAIL;
-        } else if (node.getType() == BiImplies.class) {
+        } else if (node instanceof BiImplies) {
             constraint = createEquivalenceConstraint(node);
-        } else if (node.getType() == Choose.class) {
+        } else if (node instanceof Choose) {
             return TraversalAction.FAIL;
-        } else if (node.getType() == Implies.class) {
+        } else if (node instanceof Implies) {
             constraint = createImplicationConstraint(node);
-        } else if (node.getType() == Not.class) {
+        } else if (node instanceof Not) {
             constraint = createNotConstraint(node);
-        } else if (node.getType() == Or.class) {
+        } else if (node instanceof Or) {
             constraint = createOrConstraint(node);
-        } else if (node.getType() == Reference.class) {
+        } else if (node instanceof Reference) {
             return TraversalAction.CONTINUE;
-        } else if (node.getType() == Literal.class) {
+        } else if (node instanceof Literal) {
             constraint = createLiteralConstraint(node);
-        } else {
+        } else if (node instanceof Variable) {
+            return TraversalAction.CONTINUE;
+        }
+        if (constraint == null) {
             return TraversalAction.FAIL;
         }
-        if (constraint == null) return TraversalAction.FAIL;
         uvlConstraints.put(node, constraint);
         rootConstraint = constraint;
         return TraversalAction.CONTINUE;
     }
 
-    private Constraint createLiteralConstraint(IFormula node) {
+    private Constraint createLiteralConstraint(IExpression node) {
         Literal literal = (Literal) node;
         if (!node.getChildren().isEmpty()) {
             if (literal.isPositive()) {
@@ -85,7 +88,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
         return null;
     }
 
-    private EquivalenceConstraint createEquivalenceConstraint(IFormula node) {
+    private EquivalenceConstraint createEquivalenceConstraint(IExpression node) {
         if (node.getChildren().size() > 1) {
             return new EquivalenceConstraint(
                     uvlConstraints.get(node.getChildren().get(0)),
@@ -94,7 +97,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
         return null;
     }
 
-    private ImplicationConstraint createImplicationConstraint(IFormula node) {
+    private ImplicationConstraint createImplicationConstraint(IExpression node) {
         if (node.getChildren().size() > 1) {
             return new ImplicationConstraint(
                     uvlConstraints.get(node.getChildren().get(0)),
@@ -103,14 +106,14 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
         return null;
     }
 
-    private NotConstraint createNotConstraint(IFormula node) {
+    private NotConstraint createNotConstraint(IExpression node) {
         if (!node.getChildren().isEmpty()) {
             return new NotConstraint(uvlConstraints.get(node.getChildren().get(0)));
         }
         return null;
     }
 
-    private Constraint createAndConstraint(IFormula node) {
+    private Constraint createAndConstraint(IExpression node) {
         List<Constraint> constraints = node.getChildren().stream()
                 .map((child) -> uvlConstraints.get(child))
                 .collect(Collectors.toList());
@@ -133,7 +136,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IFormula, Con
         return null;
     }
 
-    private Constraint createOrConstraint(IFormula node) {
+    private Constraint createOrConstraint(IExpression node) {
         List<Constraint> constraints = node.getChildren().stream()
                 .map((child) -> uvlConstraints.get(child))
                 .collect(Collectors.toList());
