@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api 'de.featjar:formula'
     api 'de.featjar:feature-model'
-	implementation group: 'io.github.universal-variability-language', name: 'fm-metamodel', version: '1.0'
+	api group: 'io.github.universal-variability-language', name: 'fm-metamodel', version: '1.0'
     implementation testFixtures('de.featjar:formula')
 }
 
