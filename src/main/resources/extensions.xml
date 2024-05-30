@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <extensions>
     <point id="de.featjar.feature.model.io.FeatureModelFormats">
-        <extension id="de.featjar.feature.model.io.xml.UVLFeatureModelFormat" />
+        <extension id="de.featjar.feature.model.io.uvl.UVLFeatureModelFormat" />
     </point>
 </extensions>
