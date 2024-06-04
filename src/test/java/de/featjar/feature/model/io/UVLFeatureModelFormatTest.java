@@ -30,7 +30,7 @@ import de.featjar.feature.model.IFeatureModel;
 import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
 import de.featjar.feature.model.transformer.ComputeFormula;
 import de.featjar.formula.structure.Expressions;
-import de.featjar.formula.structure.formula.IFormula;
+import de.featjar.formula.structure.IFormula;
 import java.io.IOException;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;

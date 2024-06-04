@@ -36,7 +36,7 @@ import de.featjar.formula.io.textual.ExpressionParser;
 import de.featjar.formula.io.textual.ExpressionParser.ErrorHandling;
 import de.featjar.formula.io.textual.ShortSymbols;
 import de.featjar.formula.structure.IExpression;
-import de.featjar.formula.structure.formula.IFormula;
+import de.featjar.formula.structure.IFormula;
 import de.vill.main.UVLModelFactory;
 import de.vill.model.FeatureType;
 import de.vill.model.constraint.Constraint;
