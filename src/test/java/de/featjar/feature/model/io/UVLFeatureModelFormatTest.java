@@ -20,38 +20,180 @@
  */
 package de.featjar.feature.model.io;
 
-import de.featjar.base.FeatJAR;
+import de.featjar.base.computation.Computations;
+import de.featjar.base.data.Result;
+import de.featjar.base.data.identifier.Identifiers;
+import de.featjar.base.io.format.IFormat;
+import de.featjar.base.io.input.FileInputMapper;
+import de.featjar.feature.model.*;
+import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
+import de.featjar.formula.analysis.bool.ComputeBooleanRepresentation;
+import de.featjar.formula.analysis.sat4j.ComputeSatisfiableSAT4J;
+import de.featjar.formula.structure.formula.IFormula;
+import de.featjar.formula.structure.formula.connective.*;
+import de.featjar.formula.structure.formula.predicate.Literal;
+import de.featjar.formula.transform.ComputeCNFFormula;
+import de.featjar.formula.transform.ComputeNNFFormula;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class UVLFeatureModelFormatTest { // extends Common {
+public class UVLFeatureModelFormatTest {
 
-    /*
-    @Test
-    public void graphVizFeatureModelFormat() throws IOException {
-        Result<IFeatureModel> featureModel =
-                IO.load(Paths.get("src/test/resources/single/Server.uvl"), new UVLFeatureModelFormat());
-        assertTrue(featureModel.isPresent(), featureModel.printProblems());
-        Result<IFormula> formula =
-                featureModel.toComputation().map(ComputeFormula::new).computeResult();
-        assertTrue(formula.isPresent(), formula.printProblems());
-        FeatJAR.log().info(Expressions.print(formula.get()));
+    FeatureModel featureModel;
+
+    @BeforeEach
+    public void setup() {
+        FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
+
+        // features
+        IFeatureTree rootTree =
+                featureModel.mutate().addFeatureTreeRoot(featureModel.mutate().addFeature("root"));
+        rootTree.mutate().setAnd();
+
+        IFeature childFeature1 = featureModel.mutate().addFeature("Test1");
+        IFeatureTree childTree1 = rootTree.mutate().addFeatureBelow(childFeature1);
+
+        IFeature childFeature2 = featureModel.mutate().addFeature("Test2");
+        IFeatureTree childTree2 = rootTree.mutate().addFeatureBelow(childFeature2);
+
+        IFeature childFeature3 = featureModel.mutate().addFeature("Test3");
+        IFeatureTree childTree3 = childTree1.mutate().addFeatureBelow(childFeature3);
+        childTree3.mutate().setAlternative();
+
+        IFeature childFeature4 = featureModel.mutate().addFeature("Test4");
+        childTree1.mutate().addFeatureBelow(childFeature4);
+
+        IFeature childFeature5 = featureModel.mutate().addFeature("Test5");
+        IFeatureTree childTree5 = childTree2.mutate().addFeatureBelow(childFeature5);
+        childTree5.mutate().setOr();
+
+        IFeature childFeature6 = featureModel.mutate().addFeature("Test6");
+        childTree2.mutate().addFeatureBelow(childFeature6);
+
+        IFeature childFeature7 = featureModel.mutate().addFeature("Test7");
+        IFeatureTree childTree7 = rootTree.mutate().addFeatureBelow(childFeature7);
+        childTree7.mutate().setMandatory();
+
+        IFormula formula1 = new Or(
+                new And(new Literal("Test1"), new Literal("Test2")),
+                new BiImplies(new Literal("Test3"), new Literal("Test4")),
+                new Implies(new Literal("Test5"), new Literal("Test6")),
+                new Not(new Literal("Test7")));
+
+        // constraints
+        featureModel.mutate().addConstraint(formula1);
+        this.featureModel = featureModel;
     }
-    */
 
     @Test
-    void testConvertFormatCommand() throws IOException {
-        // TODO: Write test
-        System.out.println("Testing ConvertFormatCommand");
-        // String testFile = new
-        // String(Files.readAllBytes(Path.of("./src/test/java/de/featjar/res/testConvertFormatCommand.dimacs")));
-        FeatJAR.main(
-                "convert-format --input ./src/test/resources/xml/test.xml --format de.featjar.feature.model.io.uvl.UVLFormulaFormat"
-                        .split(" "));
-        // ProcessOutput output = runProcess(sat4jstring + " convert-format-sat4j --input
-        // ../formula/src/testFixtures/resources/GPL/model.xml --format
-        // de.featjar.formula.io.xml.XMLFeatureModelFormulaFormat");
-        // Assertions.assertTrue(output.errorString.isBlank());
-        // Assertions.assertEquals(output.outputString.trim(), testFile.trim());
+    void testUVLFeatureModelFormatSerialize() throws IOException {
+
+        UVLFeatureModelFormat format = new UVLFeatureModelFormat();
+        Result<String> featureModelString = format.serialize(featureModel);
+
+        if (featureModelString.isEmpty()) {
+            Assertions.fail();
+        }
+
+        String expected = new String(
+                Files.readAllBytes(Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl")));
+        Assertions.assertEquals(expected, featureModelString.get());
+    }
+
+    @Test
+    void testUVLFeatureModelFormatParse() throws IOException {
+        IFormat<IFeatureModel> format = new UVLFeatureModelFormat();
+        Result<IFeatureModel> result = format.parse(new FileInputMapper(
+                Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl"),
+                Charset.defaultCharset()));
+
+        System.out.println(result.printProblems());
+
+        if (result.isEmpty()) {
+            Assertions.fail();
+        }
+
+        IFeatureModel parsedFeatureModel = result.get();
+
+        // testing root
+        IFeature rootFeature = parsedFeatureModel.getFeature("root").get();
+        List<String> rootChildrenNames = rootFeature.getFeatureTree().get().getChildren().stream()
+                .map((it) -> it.getFeature().getName().get())
+                .collect(Collectors.toList());
+        Assertions.assertEquals(3, rootChildrenNames.size());
+        Assertions.assertTrue(rootChildrenNames.contains("Test1"));
+        Assertions.assertTrue(rootChildrenNames.contains("Test2"));
+        Assertions.assertTrue(rootChildrenNames.contains("Test7"));
+
+        // testing Test1 feature
+        IFeature test1Feature = parsedFeatureModel.getFeature("Test1").get();
+        Assertions.assertTrue(test1Feature.getFeatureTree().get().getGroup().isAnd());
+        Assertions.assertTrue(test1Feature.getFeatureTree().get().isOptional());
+        List<String> test1ChildrenNames = test1Feature.getFeatureTree().get().getChildren().stream()
+                .map((it) -> it.getFeature().getName().get())
+                .collect(Collectors.toList());
+        Assertions.assertEquals(2, test1ChildrenNames.size());
+        Assertions.assertTrue(test1ChildrenNames.contains("Test3"));
+        Assertions.assertTrue(test1ChildrenNames.contains("Test4"));
+
+        // testing Test2 feature
+        IFeature test2Feature = parsedFeatureModel.getFeature("Test2").get();
+        Assertions.assertTrue(test2Feature.getFeatureTree().get().getGroup().isAnd());
+        Assertions.assertTrue(test2Feature.getFeatureTree().get().isOptional());
+        List<String> test2ChildrenNames = test2Feature.getFeatureTree().get().getChildren().stream()
+                .map((it) -> it.getFeature().getName().get())
+                .collect(Collectors.toList());
+        Assertions.assertEquals(2, test2ChildrenNames.size());
+        Assertions.assertTrue(test2ChildrenNames.contains("Test5"));
+        Assertions.assertTrue(test2ChildrenNames.contains("Test6"));
+
+        // testing Test3 feature
+        IFeature test3Feature = parsedFeatureModel.getFeature("Test3").get();
+        Assertions.assertTrue(test3Feature.getFeatureTree().get().getGroup().isAlternative());
+        Assertions.assertTrue(test3Feature.getFeatureTree().get().getChildren().isEmpty());
+
+        // testing Test4 feature
+        IFeature test4Feature = parsedFeatureModel.getFeature("Test4").get();
+        Assertions.assertTrue(test4Feature.getFeatureTree().get().getGroup().isAlternative());
+        Assertions.assertTrue(test4Feature.getFeatureTree().get().getChildren().isEmpty());
+
+        // testing Test5 feature
+        IFeature test5Feature = parsedFeatureModel.getFeature("Test5").get();
+        Assertions.assertTrue(test5Feature.getFeatureTree().get().getGroup().isOr());
+        Assertions.assertTrue(test5Feature.getFeatureTree().get().getChildren().isEmpty());
+
+        // testing Test6 feature
+        IFeature test6Feature = parsedFeatureModel.getFeature("Test6").get();
+        Assertions.assertTrue(test6Feature.getFeatureTree().get().getGroup().isOr());
+        Assertions.assertTrue(test6Feature.getFeatureTree().get().getChildren().isEmpty());
+
+        // testing Test7 feature
+        IFeature test7Feature = parsedFeatureModel.getFeature("Test7").get();
+        Assertions.assertTrue(test7Feature.getFeatureTree().get().getGroup().isAnd());
+        Assertions.assertTrue(test7Feature.getFeatureTree().get().isMandatory());
+        Assertions.assertTrue(test7Feature.getFeatureTree().get().getChildren().isEmpty());
+
+        System.out.println(parsedFeatureModel);
+
+        Assertions.assertEquals(1, parsedFeatureModel.getConstraints().size());
+        IFormula constraint =
+                parsedFeatureModel.getConstraints().iterator().next().getFormula();
+        IFormula constraint2 = featureModel.getConstraints().iterator().next().getFormula();
+        Boolean notEquivalent = Computations.of((IFormula) new Not(new BiImplies(constraint, constraint2)))
+                .map(ComputeNNFFormula::new)
+                .map(ComputeCNFFormula::new)
+                .map(ComputeBooleanRepresentation::new)
+                .map(Computations::getKey)
+                .map(ComputeSatisfiableSAT4J::new)
+                .compute();
+
+        Assertions.assertFalse(notEquivalent);
     }
 }

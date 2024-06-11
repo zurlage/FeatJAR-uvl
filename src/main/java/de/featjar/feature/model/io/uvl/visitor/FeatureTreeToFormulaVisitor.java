@@ -1,11 +1,29 @@
+/*
+ * Copyright (C) 2024 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-uvl.
+ *
+ * uvl is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * uvl is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with uvl. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-uvl> for further information.
+ */
 package de.featjar.feature.model.io.uvl.visitor;
 
 import de.featjar.base.data.Problem;
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
-import de.featjar.feature.model.FeatureTree;
-import de.featjar.feature.model.IFeature;
-import de.featjar.feature.model.IFeatureTree;
+import de.featjar.feature.model.*;
 import de.featjar.feature.model.io.uvl.UVLUtils;
 import de.featjar.formula.structure.formula.IFormula;
 import de.featjar.formula.structure.formula.connective.And;
@@ -17,9 +35,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Converts a {@link IFeatureTree} to an {@link IFormula}.
+ *
+ * @author Andreas Gerasimow
+ */
 public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, IFormula> {
 
-    // private Stack<IFormula> formulaStack;
     private HashMap<IFeatureTree, IFormula> formulas = new HashMap<>();
     private IFormula rootFormula;
     List<Problem> problems;
@@ -30,7 +52,6 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
 
     @Override
     public void reset() {
-        // formulaStack = new Stack<>();
         formulas = new HashMap<>();
         rootFormula = null;
         problems = new ArrayList<>();
@@ -38,7 +59,6 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
 
     @Override
     public Result<IFormula> getResult() {
-        // return Result.of(formulaStack.peek());
         if (rootFormula == null) {
             return Result.empty(problems);
         }
@@ -49,12 +69,6 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
     public TraversalAction lastVisit(List<IFeatureTree> path) {
         final IFeatureTree node = ITreeVisitor.getCurrentNode(path);
         IFeature feature = node.getFeature();
-        FeatureTree.Group group = node.getGroup();
-
-        // IFormula[] children = new IFormula[node.getChildren().size()];
-        // for (int i = 0; i < node.getChildren().size(); i++) {
-        //     children[i] = formulaStack.pop();
-        // }
 
         Result<String> featureName = feature.getName();
         problems.addAll(featureName.getProblems());
@@ -62,6 +76,13 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
             problems.add(new Problem("Feature has no name"));
             return TraversalAction.FAIL;
         }
+
+        if (node.getGroups().isEmpty()) {
+            problems.add(new Problem(featureName.get() + " has no group."));
+            return TraversalAction.FAIL;
+        }
+
+        FeatureTree.Group group = node.getGroups().get(0);
 
         IFormula currentFormula;
 
@@ -97,7 +118,9 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
                 return TraversalAction.FAIL;
             }
 
-            if (node.isOptional()) {
+            if (childrenFormula.getChildren().isEmpty()) {
+                currentFormula = new Literal(featureName.get());
+            } else if (node.isOptional()) {
                 currentFormula = new Implies(new Literal(featureName.get()), childrenFormula);
             } else if (node.isMandatory()) {
                 currentFormula = new And(new Literal(featureName.get()), childrenFormula);
@@ -107,7 +130,6 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
             }
         }
 
-        // formulaStack.add(currentFormula);
         formulas.put(node, currentFormula);
         rootFormula = currentFormula;
 

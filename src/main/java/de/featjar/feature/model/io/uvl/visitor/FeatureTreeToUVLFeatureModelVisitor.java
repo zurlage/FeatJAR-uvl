@@ -1,3 +1,23 @@
+/*
+ * Copyright (C) 2024 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-uvl.
+ *
+ * uvl is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * uvl is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with uvl. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-uvl> for further information.
+ */
 package de.featjar.feature.model.io.uvl.visitor;
 
 import static de.vill.model.FeatureType.*;
@@ -16,7 +36,13 @@ import de.vill.model.FeatureModel;
 import de.vill.model.Group;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Converts a {@link IFeatureTree} to a {@link de.vill.model.FeatureModel}.
+ *
+ * @author Andreas Gerasimow
+ */
 public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatureTree, de.vill.model.FeatureModel> {
 
     private de.vill.model.FeatureModel uvlModel;
@@ -57,6 +83,7 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
             }
 
             de.vill.model.Feature uvlFeature = new de.vill.model.Feature(name);
+
             uvlFeature.setNameSpace(namespace);
             uvlFeature
                     .getAttributes()
@@ -79,15 +106,48 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
                                     entry.getKey().getName(),
                                     new Attribute<>(entry.getKey().getName(), entry.getValue())));
 
-            FeatureTree.Group group = node.getGroup();
+            List<FeatureTree.Group> groups = node.getGroups();
 
-            de.vill.model.Group uvlGroup = new de.vill.model.Group(getUVLGroupType(group, node));
-            uvlGroup.setParentFeature(uvlFeature);
-            uvlGroup.setLowerBound(String.valueOf(group.getLowerBound()));
-            uvlGroup.setUpperBound(String.valueOf(group.getUpperBound()));
-            uvlGroup.getFeatures().addAll(getUVLChildrenFeatures(node.getChildren()));
-            uvlFeature.addChildren(uvlGroup);
+            for (int i = 0; i < groups.size(); i++) {
+                List<IFeatureTree> children = node.getGroupChildren(i);
+                if (children.isEmpty()) {
+                    continue;
+                }
+
+                FeatureTree.Group group = groups.get(i);
+                Group.GroupType groupType = getUVLGroupType(group);
+
+                if (groupType == null) {
+                    List<IFeatureTree> mandatoryChildren =
+                            children.stream().filter(IFeatureTree::isMandatory).collect(Collectors.toList());
+                    List<IFeatureTree> optionalChildren =
+                            children.stream().filter(IFeatureTree::isOptional).collect(Collectors.toList());
+                    if (!mandatoryChildren.isEmpty()) {
+                        de.vill.model.Group mandatoryGroup = new de.vill.model.Group(Group.GroupType.MANDATORY);
+                        mandatoryGroup.setParentFeature(uvlFeature);
+                        mandatoryGroup.getFeatures().addAll(getUVLChildrenFeatures(mandatoryChildren));
+                        uvlFeature.addChildren(mandatoryGroup);
+                    }
+                    if (!optionalChildren.isEmpty()) {
+                        de.vill.model.Group optionalGroup = new de.vill.model.Group(Group.GroupType.OPTIONAL);
+                        optionalGroup.setParentFeature(uvlFeature);
+                        optionalGroup.getFeatures().addAll(getUVLChildrenFeatures(optionalChildren));
+                        uvlFeature.addChildren(optionalGroup);
+                    }
+                } else {
+                    de.vill.model.Group uvlGroup = new de.vill.model.Group(groupType);
+                    uvlGroup.setParentFeature(uvlFeature);
+                    uvlGroup.setLowerBound(String.valueOf(group.getLowerBound()));
+                    uvlGroup.setUpperBound(String.valueOf(group.getUpperBound()));
+                    uvlGroup.getFeatures().addAll(getUVLChildrenFeatures(children));
+                    uvlFeature.addChildren(uvlGroup);
+                }
+            }
+
             uvlModel.getFeatureMap().put(name, uvlFeature);
+            if (node.getParent().isEmpty()) {
+                uvlModel.setRootFeature(uvlFeature);
+            }
         } catch (Exception e) {
             problemList.add(new Problem(e.getMessage()));
             return TraversalAction.FAIL;
@@ -112,17 +172,12 @@ public class FeatureTreeToUVLFeatureModelVisitor implements ITreeVisitor<IFeatur
         return feature.getName().get().split("::");
     }
 
-    private Group.GroupType getUVLGroupType(FeatureTree.Group group, IFeatureTree node) {
+    private Group.GroupType getUVLGroupType(FeatureTree.Group group) {
         if (group.isOr()) {
             return Group.GroupType.OR;
         }
         if (group.isAnd()) {
-            if (node.isOptional()) {
-                return Group.GroupType.OPTIONAL;
-            }
-            if (node.isMandatory()) {
-                return Group.GroupType.MANDATORY;
-            }
+            return null;
         }
         if (group.isAlternative()) {
             return Group.GroupType.ALTERNATIVE;

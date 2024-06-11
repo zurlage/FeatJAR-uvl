@@ -1,0 +1,15 @@
+namespace formula
+
+features
+        Formula {abstract true}
+                optional
+                        Test1
+                        Test2
+                        Test3
+                        Test4
+                        Test5
+                        Test6
+                        Test7
+
+constraints
+        (Test1 & Test2) | (Test3 <=> Test4) | (Test5 => Test6) | !Test7

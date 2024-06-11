@@ -36,6 +36,7 @@ import java.util.*;
  * Parses and writes feature models from and to UVL files.
  *
  * @author Sebastian Krieter
+ * @author Andreas Gerasimow
  */
 public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
 
@@ -62,7 +63,7 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
         List<Problem> problems = new ArrayList<>();
         try {
             if (fm.getRootFeatures().isEmpty()) {
-                problems.add(new Problem("No root features exist.", Problem.Severity.ERROR));
+                problems.add(new Problem("No root features exists.", Problem.Severity.ERROR));
                 return Result.empty(problems);
             }
 
@@ -91,10 +92,10 @@ public class UVLFeatureModelFormat implements IFormat<IFeatureModel> {
                 if (uvlConstraint.isEmpty()) {
                     return Result.empty(problems);
                 }
-                uvlModel.get().getConstraints().add(uvlConstraint.get());
+                uvlModel.get().getOwnConstraints().add(uvlConstraint.get());
             }
 
-            return Result.of(uvlModel.toString(), problems);
+            return Result.of(uvlModel.get().toString(), problems);
         } catch (Exception e) {
             return Result.empty(e);
         }

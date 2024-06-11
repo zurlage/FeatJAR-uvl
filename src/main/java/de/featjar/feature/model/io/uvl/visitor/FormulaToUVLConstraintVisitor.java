@@ -1,9 +1,28 @@
+/*
+ * Copyright (C) 2024 FeatJAR-Development-Team
+ *
+ * This file is part of FeatJAR-uvl.
+ *
+ * uvl is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3.0 of the License,
+ * or (at your option) any later version.
+ *
+ * uvl is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with uvl. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * See <https://github.com/FeatureIDE/FeatJAR-uvl> for further information.
+ */
 package de.featjar.feature.model.io.uvl.visitor;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.formula.structure.IExpression;
-import de.featjar.formula.structure.formula.IFormula;
 import de.featjar.formula.structure.formula.connective.*;
 import de.featjar.formula.structure.formula.predicate.Literal;
 import de.featjar.formula.structure.term.value.Variable;
@@ -13,6 +32,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Converts an {@link IExpression} to a {@link de.vill.model.constraint.Constraint}.
+ *
+ * @author Andreas Gerasimow
+ */
 public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, Constraint> {
 
     private Map<IExpression, Constraint> uvlConstraints;
@@ -33,7 +57,10 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, 
         if (rootConstraint == null) {
             return Result.empty();
         }
-        return Result.of(rootConstraint);
+        return Result.of(
+                rootConstraint instanceof ParenthesisConstraint
+                        ? ((ParenthesisConstraint) rootConstraint).getContent()
+                        : rootConstraint);
     }
 
     @Override
@@ -43,7 +70,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, 
         Constraint constraint = null;
 
         if (node instanceof And) {
-            constraint = createAndConstraint(node);
+            constraint = new ParenthesisConstraint(createAndConstraint(node));
         } else if (node instanceof AtLeast) {
             return TraversalAction.FAIL;
         } else if (node instanceof AtMost) {
@@ -51,15 +78,15 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, 
         } else if (node instanceof Between) {
             return TraversalAction.FAIL;
         } else if (node instanceof BiImplies) {
-            constraint = createEquivalenceConstraint(node);
+            constraint = new ParenthesisConstraint(createEquivalenceConstraint(node));
         } else if (node instanceof Choose) {
             return TraversalAction.FAIL;
         } else if (node instanceof Implies) {
-            constraint = createImplicationConstraint(node);
+            constraint = new ParenthesisConstraint(createImplicationConstraint(node));
         } else if (node instanceof Not) {
             constraint = createNotConstraint(node);
         } else if (node instanceof Or) {
-            constraint = createOrConstraint(node);
+            constraint = new ParenthesisConstraint(createOrConstraint(node));
         } else if (node instanceof Reference) {
             return TraversalAction.CONTINUE;
         } else if (node instanceof Literal) {
