@@ -28,7 +28,7 @@ import de.featjar.base.tree.Trees;
 import de.featjar.feature.model.*;
 import de.featjar.feature.model.io.uvl.visitor.FeatureTreeToUVLFeatureModelVisitor;
 import de.featjar.feature.model.io.uvl.visitor.FormulaToUVLConstraintVisitor;
-import de.featjar.formula.structure.formula.IFormula;
+import de.featjar.formula.structure.IFormula;
 import de.vill.main.UVLModelFactory;
 import java.util.*;
 

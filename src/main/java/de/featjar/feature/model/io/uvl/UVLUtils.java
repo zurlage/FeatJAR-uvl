@@ -21,20 +21,20 @@
 package de.featjar.feature.model.io.uvl;
 
 import de.featjar.base.FeatJAR;
+import de.featjar.base.data.BinomialCalculator;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.ParseException;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.visitor.TreePrinter;
 import de.featjar.feature.model.*;
-import de.featjar.formula.analysis.combinations.BinomialCalculator;
 import de.featjar.formula.io.textual.ExpressionParser;
 import de.featjar.formula.io.textual.UVLSymbols;
 import de.featjar.formula.structure.IExpression;
-import de.featjar.formula.structure.formula.IFormula;
-import de.featjar.formula.structure.formula.connective.And;
-import de.featjar.formula.structure.formula.connective.Not;
-import de.featjar.formula.structure.formula.connective.Or;
+import de.featjar.formula.structure.IFormula;
+import de.featjar.formula.structure.connective.And;
+import de.featjar.formula.structure.connective.Not;
+import de.featjar.formula.structure.connective.Or;
 import de.vill.model.FeatureType;
 import de.vill.model.Group;
 import de.vill.model.constraint.Constraint;
@@ -200,7 +200,7 @@ public class UVLUtils {
     /**
      * Retrieves name and namespace of a UVL feature.
      * @param feature UVL feature to retrieve the name and namespace.
-     * @return Name of the feature. If the feature has a namespace, the return value will be in the following format: \<namespace\>::\<feature name\>
+     * @return Name of the feature. If the feature has a namespace, the return value will be in the following format: <namespace>::<feature name>
      */
     public static String getName(de.vill.model.Feature feature) {
         String nameSpace = feature.getNameSpace();

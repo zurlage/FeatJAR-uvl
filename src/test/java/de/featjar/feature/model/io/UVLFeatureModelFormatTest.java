@@ -20,6 +20,7 @@
  */
 package de.featjar.feature.model.io;
 
+import de.featjar.analysis.sat4j.computation.ComputeSatisfiableSAT4J;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
@@ -27,22 +28,22 @@ import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
 import de.featjar.feature.model.*;
 import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
-import de.featjar.formula.analysis.bool.ComputeBooleanRepresentation;
-import de.featjar.formula.analysis.sat4j.ComputeSatisfiableSAT4J;
-import de.featjar.formula.structure.formula.IFormula;
-import de.featjar.formula.structure.formula.connective.*;
-import de.featjar.formula.structure.formula.predicate.Literal;
-import de.featjar.formula.transform.ComputeCNFFormula;
-import de.featjar.formula.transform.ComputeNNFFormula;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import de.featjar.formula.assignment.ComputeBooleanClauseList;
+import de.featjar.formula.structure.IFormula;
+import de.featjar.formula.structure.connective.*;
+import de.featjar.formula.structure.predicate.Literal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import de.featjar.formula.computation.ComputeNNFFormula;
+import de.featjar.formula.computation.ComputeCNFFormula;
 
 public class UVLFeatureModelFormatTest {
 
@@ -186,10 +187,11 @@ public class UVLFeatureModelFormatTest {
         IFormula constraint =
                 parsedFeatureModel.getConstraints().iterator().next().getFormula();
         IFormula constraint2 = featureModel.getConstraints().iterator().next().getFormula();
+
         Boolean notEquivalent = Computations.of((IFormula) new Not(new BiImplies(constraint, constraint2)))
                 .map(ComputeNNFFormula::new)
                 .map(ComputeCNFFormula::new)
-                .map(ComputeBooleanRepresentation::new)
+                .map(ComputeBooleanClauseList::new)
                 .map(Computations::getKey)
                 .map(ComputeSatisfiableSAT4J::new)
                 .compute();
