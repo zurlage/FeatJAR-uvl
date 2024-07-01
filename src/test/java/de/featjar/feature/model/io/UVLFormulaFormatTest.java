@@ -24,14 +24,13 @@ import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
 import de.featjar.feature.model.io.uvl.UVLFormulaFormat;
+import de.featjar.formula.structure.IFormula;
+import de.featjar.formula.structure.connective.*;
+import de.featjar.formula.structure.predicate.Literal;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import de.featjar.formula.structure.IFormula;
-import de.featjar.formula.structure.connective.*;
-import de.featjar.formula.structure.predicate.Literal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
