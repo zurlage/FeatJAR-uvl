@@ -1,15 +1,13 @@
-namespace formula
-
 features
-        Formula {abstract true}
+        Boolean Formula {name 'Formula', abstract true}
                 optional
-                        Test1
-                        Test2
-                        Test3
-                        Test4
-                        Test5
-                        Test6
-                        Test7
+                        Boolean Test1 {name 'Test1', abstract false}
+                        Boolean Test2 {name 'Test2', abstract false}
+                        Boolean Test3 {name 'Test3', abstract false}
+                        Boolean Test4 {name 'Test4', abstract false}
+                        Boolean Test5 {name 'Test5', abstract false}
+                        Boolean Test6 {name 'Test6', abstract false}
+                        Boolean Test7 {name 'Test7', abstract false}
 
 constraints
         (Test1 & Test2) | (Test3 <=> Test4) | (Test5 => Test6) | !Test7

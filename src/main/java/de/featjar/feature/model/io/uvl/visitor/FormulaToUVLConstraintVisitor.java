@@ -25,6 +25,7 @@ import de.featjar.base.tree.visitor.ITreeVisitor;
 import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.connective.*;
 import de.featjar.formula.structure.predicate.Literal;
+import de.featjar.formula.structure.predicate.True;
 import de.featjar.formula.structure.term.value.Variable;
 import de.vill.model.constraint.*;
 import java.util.HashMap;
@@ -94,6 +95,7 @@ public class FormulaToUVLConstraintVisitor implements ITreeVisitor<IExpression, 
         } else if (node instanceof Variable) {
             return TraversalAction.CONTINUE;
         }
+
         if (constraint == null) {
             return TraversalAction.FAIL;
         }

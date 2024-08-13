@@ -20,6 +20,8 @@
  */
 package de.featjar.feature.model.io;
 
+import de.featjar.Common;
+import de.featjar.FormatTest;
 import de.featjar.analysis.sat4j.computation.ComputeSatisfiableSAT4J;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
@@ -28,9 +30,11 @@ import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
 import de.featjar.feature.model.*;
 import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
+import de.featjar.feature.model.io.uvl.UVLFormulaFormat;
 import de.featjar.formula.assignment.ComputeBooleanClauseList;
 import de.featjar.formula.computation.ComputeCNFFormula;
 import de.featjar.formula.computation.ComputeNNFFormula;
+import de.featjar.formula.io.xml.XMLFeatureModelFormulaFormat;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.*;
 import de.featjar.formula.structure.predicate.Literal;
@@ -41,15 +45,16 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class UVLFeatureModelFormatTest {
 
-    FeatureModel featureModel;
+    private static FeatureModel featureModel;
 
-    @BeforeEach
-    public void setup() {
+    @BeforeAll
+    public static void setup() {
         FeatureModel featureModel = new FeatureModel(Identifiers.newCounterIdentifier());
 
         // features
@@ -89,7 +94,14 @@ public class UVLFeatureModelFormatTest {
 
         // constraints
         featureModel.mutate().addConstraint(formula1);
-        this.featureModel = featureModel;
+        UVLFeatureModelFormatTest.featureModel = featureModel;
+    }
+
+    @Test
+    void testFixtures() {
+        FormatTest.testParseAndSerialize("uvl/ABC-nAnBnC", new UVLFeatureModelFormat());
+        FormatTest.testParseAndSerialize("uvl/nA", new UVLFeatureModelFormat());
+        FormatTest.testParseAndSerialize("uvl/nAB", new UVLFeatureModelFormat());
     }
 
     @Test
@@ -113,8 +125,6 @@ public class UVLFeatureModelFormatTest {
         Result<IFeatureModel> result = format.parse(new FileInputMapper(
                 Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl"),
                 Charset.defaultCharset()));
-
-        System.out.println(result.printProblems());
 
         if (result.isEmpty()) {
             Assertions.fail();
@@ -179,8 +189,6 @@ public class UVLFeatureModelFormatTest {
         Assertions.assertTrue(test7Feature.getFeatureTree().get().getGroup().isAnd());
         Assertions.assertTrue(test7Feature.getFeatureTree().get().isMandatory());
         Assertions.assertTrue(test7Feature.getFeatureTree().get().getChildren().isEmpty());
-
-        System.out.println(parsedFeatureModel);
 
         Assertions.assertEquals(1, parsedFeatureModel.getConstraints().size());
         IFormula constraint =

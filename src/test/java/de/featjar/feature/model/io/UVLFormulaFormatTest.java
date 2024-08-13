@@ -20,9 +20,12 @@
  */
 package de.featjar.feature.model.io;
 
+import de.featjar.Common;
+import de.featjar.FormatTest;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
+import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
 import de.featjar.feature.model.io.uvl.UVLFormulaFormat;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.*;
@@ -35,6 +38,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class UVLFormulaFormatTest { // extends Common {
+
+    @Test
+    void testFixtures() {
+        FormatTest.testParse(Common.getFormula("ABC-nAnBnC"), "uvl/ABC-nAnBnC", 1, new UVLFormulaFormat());
+        FormatTest.testParse(Common.getFormula("nA"), "uvl/nA", 3, new UVLFormulaFormat());
+        FormatTest.testParse(Common.getFormula("nAB"), "uvl/nAB", 1, new UVLFormulaFormat());
+        //TODO: testSerializeAndParse
+    }
 
     @Test
     void testUVLFormulaFormatSerialize() throws IOException {
@@ -66,16 +77,15 @@ public class UVLFormulaFormatTest { // extends Common {
             Assertions.fail();
         }
 
-        IFormula expected = new And(
+        IFormula expected = new Reference(new Or(
+                new And(new Literal("Test1"), new Literal("Test2")),
                 new Or(
-                        new And(new Literal("Test1"), new Literal("Test2")),
+                        new BiImplies(new Literal("Test3"), new Literal("Test4")),
                         new Or(
-                                new BiImplies(new Literal("Test3"), new Literal("Test4")),
-                                new Or(
-                                        new Implies(new Literal("Test5"), new Literal("Test6")),
-                                        new Not(new Literal("Test7"))))),
-                new Literal("Formula"));
+                                new Implies(new Literal("Test5"), new Literal("Test6")),
+                                new Not(new Literal("Test7"))))));
 
-        Assertions.assertEquals(expected.print(), result.get().print());
+
+        Assertions.assertEquals(expected, result.get());
     }
 }

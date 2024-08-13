@@ -31,9 +31,12 @@ import de.featjar.feature.model.io.uvl.visitor.FeatureTreeToFormulaVisitor;
 import de.featjar.feature.model.io.uvl.visitor.FormulaToUVLConstraintVisitor;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
+import de.featjar.formula.structure.connective.Reference;
+import de.featjar.formula.structure.predicate.True;
 import de.vill.main.UVLModelFactory;
 import de.vill.model.Attribute;
 import de.vill.model.Feature;
+import de.vill.model.FeatureType;
 import de.vill.model.Group;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,9 +77,14 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
                 return Result.empty(problems);
             }
 
-            List<IFormula> formulas = UVLUtils.uvlConstraintToFormula(uvlModel.getConstraints());
-            formulas.add(result.get());
-            IFormula formula = new And(formulas);
+            List<IFormula> formulas = new ArrayList<>();
+            if (!(result.get() instanceof True)) {
+                formulas.add(result.get());
+            }
+            List<IFormula> constraintFormulas = UVLUtils.uvlConstraintToFormula(uvlModel.getConstraints());
+            formulas.addAll(constraintFormulas);
+
+            IFormula formula = new Reference(formulas.size() == 1 ? formulas.get(0) : new And(formulas));
 
             return Result.of(formula, problems);
         } catch (Exception e) {
@@ -86,11 +94,11 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
 
     @Override
     public Result<String> serialize(IFormula formula) {
-        List<Problem> problems = new ArrayList<>();
 
         de.vill.model.FeatureModel uvlModel = new de.vill.model.FeatureModel();
-        uvlModel.setNamespace("formula");
         de.vill.model.Feature uvlRootFeature = new Feature(ROOT_FEATURE_NAME);
+        uvlRootFeature.setFeatureType(FeatureType.BOOL);
+        uvlRootFeature.getAttributes().put("name", new Attribute<>("name", ROOT_FEATURE_NAME));
         uvlRootFeature.getAttributes().put("abstract", new Attribute<>("abstract", true));
         uvlModel.setRootFeature(uvlRootFeature);
         uvlModel.getFeatureMap().put(ROOT_FEATURE_NAME, uvlRootFeature);
@@ -100,13 +108,16 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
 
         formula.getVariableNames().forEach((variableName) -> {
             de.vill.model.Feature uvlFeature = new Feature(variableName);
+            uvlFeature.setFeatureType(FeatureType.BOOL);
+            uvlFeature.getAttributes().put("name", new Attribute<>("name", variableName));
+            uvlFeature.getAttributes().put("abstract", new Attribute<>("abstract", false));
             uvlModel.getFeatureMap().put(variableName, uvlFeature);
             uvlRootGroup.getFeatures().add(uvlFeature);
         });
 
         Result<de.vill.model.constraint.Constraint> uvlConstraint =
                 Trees.traverse(formula, new FormulaToUVLConstraintVisitor());
-        problems.addAll(uvlConstraint.getProblems());
+        List<Problem> problems = new ArrayList<>(uvlConstraint.getProblems());
         if (uvlConstraint.isEmpty()) {
             return Result.empty(problems);
         }

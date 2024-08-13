@@ -82,14 +82,12 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
             return TraversalAction.FAIL;
         }
 
-        FeatureTree.Group group = node.getGroups().get(0);
+        FeatureTree.Group group = node.getGroups().get(node.getGroups().size() - 1);
 
         IFormula currentFormula;
 
         if (node.getChildren().isEmpty()) { // is leaf node
-            if (node.isOptional()) {
-                currentFormula = True.INSTANCE;
-            } else if (node.isMandatory()) {
+            if (node.isOptional() || node.isMandatory()) {
                 currentFormula = new Literal(featureName.get());
             } else {
                 problems.add(new Problem(featureName.get() + " is neither an optional nor a mandatory feature."));
@@ -118,7 +116,13 @@ public class FeatureTreeToFormulaVisitor implements ITreeVisitor<IFeatureTree, I
                 return TraversalAction.FAIL;
             }
 
-            if (childrenFormula.getChildren().isEmpty()) {
+            if (path.size() == 1) {
+                if (childrenFormula.getChildren().isEmpty()) {
+                    currentFormula = True.INSTANCE;
+                } else {
+                    currentFormula = childrenFormula;
+                }
+            } else if (childrenFormula.getChildren().isEmpty()) {
                 currentFormula = new Literal(featureName.get());
             } else if (node.isOptional()) {
                 currentFormula = new Implies(new Literal(featureName.get()), childrenFormula);
