@@ -25,7 +25,6 @@ import de.featjar.FormatTest;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
-import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
 import de.featjar.feature.model.io.uvl.UVLFormulaFormat;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.*;
@@ -44,7 +43,7 @@ public class UVLFormulaFormatTest { // extends Common {
         FormatTest.testParse(Common.getFormula("ABC-nAnBnC"), "uvl/ABC-nAnBnC", 1, new UVLFormulaFormat());
         FormatTest.testParse(Common.getFormula("nA"), "uvl/nA", 3, new UVLFormulaFormat());
         FormatTest.testParse(Common.getFormula("nAB"), "uvl/nAB", 1, new UVLFormulaFormat());
-        //TODO: testSerializeAndParse
+        // TODO: testSerializeAndParse
     }
 
     @Test
@@ -84,7 +83,6 @@ public class UVLFormulaFormatTest { // extends Common {
                         new Or(
                                 new Implies(new Literal("Test5"), new Literal("Test6")),
                                 new Not(new Literal("Test7"))))));
-
 
         Assertions.assertEquals(expected, result.get());
     }

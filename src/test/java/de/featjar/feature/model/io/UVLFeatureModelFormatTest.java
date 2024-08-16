@@ -20,7 +20,6 @@
  */
 package de.featjar.feature.model.io;
 
-import de.featjar.Common;
 import de.featjar.FormatTest;
 import de.featjar.analysis.sat4j.computation.ComputeSatisfiableSAT4J;
 import de.featjar.base.computation.Computations;
@@ -30,11 +29,9 @@ import de.featjar.base.io.format.IFormat;
 import de.featjar.base.io.input.FileInputMapper;
 import de.featjar.feature.model.*;
 import de.featjar.feature.model.io.uvl.UVLFeatureModelFormat;
-import de.featjar.feature.model.io.uvl.UVLFormulaFormat;
 import de.featjar.formula.assignment.ComputeBooleanClauseList;
 import de.featjar.formula.computation.ComputeCNFFormula;
 import de.featjar.formula.computation.ComputeNNFFormula;
-import de.featjar.formula.io.xml.XMLFeatureModelFormulaFormat;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.*;
 import de.featjar.formula.structure.predicate.Literal;
@@ -46,7 +43,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class UVLFeatureModelFormatTest {
