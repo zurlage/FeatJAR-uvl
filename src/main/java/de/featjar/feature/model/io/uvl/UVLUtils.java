@@ -25,11 +25,10 @@ import de.featjar.base.data.BinomialCalculator;
 import de.featjar.base.data.Range;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.format.ParseException;
-import de.featjar.base.tree.Trees;
-import de.featjar.base.tree.visitor.TreePrinter;
 import de.featjar.feature.model.*;
 import de.featjar.formula.io.textual.ExpressionParser;
 import de.featjar.formula.io.textual.UVLSymbols;
+import de.featjar.formula.structure.Expressions;
 import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.IFormula;
 import de.featjar.formula.structure.connective.And;
@@ -60,8 +59,7 @@ public class UVLUtils {
             if (parse.isEmpty()) {
                 FeatJAR.log().problems(parse.getProblems());
             } else {
-                FeatJAR.log()
-                        .info(Trees.traverse(parse.get(), new TreePrinter()).get());
+                FeatJAR.log().debug(Expressions.print(parse.get()));
             }
             formulas.add((IFormula) parse.get());
         }
