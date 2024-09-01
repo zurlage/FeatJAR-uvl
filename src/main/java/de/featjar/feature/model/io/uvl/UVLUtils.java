@@ -198,7 +198,7 @@ public class UVLUtils {
     /**
      * Retrieves name and namespace of a UVL feature.
      * @param feature UVL feature to retrieve the name and namespace.
-     * @return Name of the feature. If the feature has a namespace, the return value will be in the following format: <namespace>::<feature name>
+     * @return Name of the feature. If the feature has a namespace, the return value will be in the following format: {@literal <namespace>::<feature name>}
      */
     public static String getName(de.vill.model.Feature feature) {
         String nameSpace = feature.getNameSpace();
