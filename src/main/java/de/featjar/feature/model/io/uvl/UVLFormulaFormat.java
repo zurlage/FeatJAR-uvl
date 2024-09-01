@@ -60,27 +60,30 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
             de.vill.model.FeatureModel uvlModel = uvlModelFactory.parse(content);
             IFeatureModel featureModel = UVLUtils.createFeatureModel(uvlModel);
 
-            if (featureModel.getRoots().isEmpty()) {
+            List<IFeatureTree> roots = featureModel.getRoots();
+            if (roots.isEmpty()) {
                 problems.add(new Problem("No root features exist.", Problem.Severity.ERROR));
                 return Result.empty(problems);
             }
 
-            IFeatureTree rootFeature = featureModel.getRoots().get(0);
-            problems.add(new Problem(
-                    "UVL supports only one root feature. If there are more than one root features in the model, the first one will be used.",
-                    Problem.Severity.WARNING));
-
-            Result<IFormula> result = Trees.traverse(rootFeature, new FeatureTreeToFormulaVisitor());
-
-            if (result.isEmpty()) {
-                problems.addAll(result.getProblems());
+            List<IFormula> formulas = new ArrayList<>();
+            boolean fail = false;
+            for (IFeatureTree rootFeature : roots) {
+                Result<IFormula> result = Trees.traverse(rootFeature, new FeatureTreeToFormulaVisitor());
+                if (result.isEmpty()) {
+                    problems.addAll(result.getProblems());
+                    fail = true;
+                } else {
+                    IFormula treeFormula = result.get();
+                    if (!(treeFormula instanceof True)) {
+                        formulas.add(treeFormula);
+                    }
+                }
+            }
+            if (fail) {
                 return Result.empty(problems);
             }
 
-            List<IFormula> formulas = new ArrayList<>();
-            if (!(result.get() instanceof True)) {
-                formulas.add(result.get());
-            }
             List<IFormula> constraintFormulas = UVLUtils.uvlConstraintToFormula(uvlModel.getConstraints());
             formulas.addAll(constraintFormulas);
 
@@ -94,7 +97,6 @@ public class UVLFormulaFormat implements IFormat<IFormula> {
 
     @Override
     public Result<String> serialize(IFormula formula) {
-
         de.vill.model.FeatureModel uvlModel = new de.vill.model.FeatureModel();
         de.vill.model.Feature uvlRootFeature = new Feature(ROOT_FEATURE_NAME);
         uvlRootFeature.setFeatureType(FeatureType.BOOL);

@@ -36,13 +36,13 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class UVLFormulaFormatTest { // extends Common {
+public class UVLFormulaFormatTest extends Common {
 
     @Test
     void testFixtures() {
-        FormatTest.testParse(Common.getFormula("ABC-nAnBnC"), "uvl/ABC-nAnBnC", 1, new UVLFormulaFormat());
-        FormatTest.testParse(Common.getFormula("nA"), "uvl/nA", 3, new UVLFormulaFormat());
-        FormatTest.testParse(Common.getFormula("nAB"), "uvl/nAB", 1, new UVLFormulaFormat());
+        FormatTest.testParse(getFormula("ABC-nAnBnC"), "uvl/ABC-nAnBnC", 1, new UVLFormulaFormat());
+        FormatTest.testParse(getFormula("nA"), "uvl/nA", 3, new UVLFormulaFormat());
+        FormatTest.testParse(getFormula("nAB"), "uvl/nAB", 1, new UVLFormulaFormat());
         // TODO: testSerializeAndParse
     }
 
