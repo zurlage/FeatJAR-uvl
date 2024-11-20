@@ -241,27 +241,54 @@ public class UVLFeatureModelFormatTest {
     	
     	String serializedFeatureModelString = serializedFeatureModel.get();
     	
+    	
     	Result<IFeatureModel> parsedFeatureModelResult = format.parse(new StringInputMapper(serializedFeatureModelString, StandardCharsets.UTF_8, "uvl"));
     	Assertions.assertTrue(parsedFeatureModelResult.isPresent(), "Parsing of UVL file failed");
     	
     	IFeatureModel parsedFeatureModel = parsedFeatureModelResult.get();
 
-    	//System.out.println(serializedFeatureModelString.);
+    	System.out.println(serializedFeatureModelString);
+    	
+    	String originalContraints = ""; 
+    	int remainingLength = serializedFeatureModelString.length();
+    	for(int i = 0; i < serializedFeatureModelString.length(); i++) {
+    		remainingLength--;
+    		if(serializedFeatureModelString.charAt(i) == '(') {
+    			while(remainingLength > 0) {
+    				remainingLength--;
+    				i++;
+    				switch(serializedFeatureModelString.charAt(i)) {
+    					case '&':
+    						originalContraints += "and, "; 
+    						break;
+    					case '<':
+    						originalContraints += "biimplies, ";
+    						i += 2;
+    						remainingLength -= 2; 
+    						break;
+    					case '=':
+    						originalContraints += "implies, ";
+    						i++;
+    						remainingLength--;
+    						break;
+    					case '!':
+    						originalContraints += "..., ";
+    						break;
+    				}
+    			}
+    		}
+    	}
+    	originalContraints = originalContraints.substring(0,originalContraints.length()-2);
+    	System.out.println(originalContraints);
+    	
     	//Assertions.assertEquals(originalFeatureModel, parsedFeatureModel, "Parsed FeatureModel does not match the original FeatureModel");
         
     	//Collection<IConstraint> originalConstraints = originalFeatureModel.getConstraints();
     	//Collection<IConstraint> parsedConstraints = parsedFeatureModel.getConstraints();
-
-    	//System.out.println(serializedFeatureModelString);
     	
     	List<IConstraint> originalConstraintsList = originalFeatureModel.getConstraints().stream().collect(Collectors.toList());
     	List<IConstraint> parsedConstraintsList = parsedFeatureModel.getConstraints().stream().collect(Collectors.toList());
-  
-    	//System.out.println(originalConstraintsList + "\t");
-    	//System.out.println(parsedConstraintsList + "\t");
     	
-    	//System.out.println(originalConstraintsList.size());
-    	//System.out.println(parsedConstraintsList.size());	
     	
     	Assertions.assertEquals(originalConstraintsList, parsedConstraintsList, "Parsed Constraints does not match the original Constraints");
     }
