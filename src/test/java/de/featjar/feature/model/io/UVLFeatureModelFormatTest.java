@@ -195,7 +195,6 @@ public class UVLFeatureModelFormatTest {
                 .map(ComputeNNFFormula::new)
                 .map(ComputeCNFFormula::new)
                 .map(ComputeBooleanClauseList::new)
-                .map(Computations::getKey)
                 .map(ComputeSatisfiableSAT4J::new)
                 .compute();
 
