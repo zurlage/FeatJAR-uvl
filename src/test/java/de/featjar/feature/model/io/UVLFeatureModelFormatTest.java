@@ -115,7 +115,7 @@ public class UVLFeatureModelFormatTest {
         String expected = new String(
                 Files.readAllBytes(Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl")),
                 StandardCharsets.UTF_8);
-        // Assertions.assertEquals(expected, featureModelString.get());
+        Assertions.assertEquals(expected, featureModelString.get());
 
         Assertions.assertTrue(
                 Objects.equals(
