@@ -1,0 +1,70 @@
+namespace GPL
+
+features
+	GPL {extended__ true, abstract true}
+		alternative
+			MainGpl {abstract true}
+				mandatory
+					HiddenGtp {abstract true}
+						alternative
+							DirectedWithEdges
+							DirectedWithNeighbors
+							DirectedOnlyVertices
+							UndirectedWithEdges
+							UndirectedWithNeighbors
+							UndirectedOnlyVertices
+					TestProg
+					Alg {abstract true}
+						or
+							Number
+							Connected
+							StrongC {abstract true}
+								mandatory
+									StronglyConnected
+									Transpose
+							Cycle
+							MSTPrim
+							MSTKruskal
+					Src {abstract true}
+						alternative
+							BFS
+							DFS
+					HiddenWgt {abstract true}
+						mandatory
+							WeightOptions {abstract true}
+								optional
+									WeightedWithEdges
+									WeightedWithNeighbors
+									WeightedOnlyVertices
+					Wgt {abstract true}
+						alternative
+							Weighted
+							Unweighted
+					Gtp {abstract true}
+						alternative
+							Directed
+							Undirected
+					Implementation {abstract true}
+						alternative
+							OnlyVertices
+							WithNeighbors
+							WithEdges
+					Base
+
+constraints
+	Number => Gtp & Src
+	Connected => Undirected & Src
+	StrongC => Directed & DFS
+	Cycle => Gtp & DFS
+	MSTKruskal | MSTPrim => Undirected & Weighted
+	MSTKruskal | MSTPrim => !(MSTKruskal & MSTPrim)
+	MSTKruskal => WithEdges
+	OnlyVertices & Weighted <=> WeightedOnlyVertices
+	WithNeighbors & Weighted <=> WeightedWithNeighbors
+	WithEdges & Weighted <=> WeightedWithEdges
+	OnlyVertices & Directed <=> DirectedOnlyVertices
+	WithNeighbors & Directed <=> DirectedWithNeighbors
+	WithEdges & Directed <=> DirectedWithEdges
+	OnlyVertices & Undirected <=> UndirectedOnlyVertices
+	WithNeighbors & Undirected <=> UndirectedWithNeighbors
+	WithEdges & Undirected <=> UndirectedWithEdges

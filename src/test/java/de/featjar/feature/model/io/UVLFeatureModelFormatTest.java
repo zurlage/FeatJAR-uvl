@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2024 FeatJAR-Development-Team
  *
- * This file is part of FeatJAR-FeatJAR-uvl-Team.
+ * This file is part of FeatJAR-uvl.
  *
- * FeatJAR-uvl-Team is free software: you can redistribute it and/or modify it
+ * uvl is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3.0 of the License,
  * or (at your option) any later version.
  *
- * FeatJAR-uvl-Team is distributed in the hope that it will be useful,
+ * uvl is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public License
- * along with FeatJAR-uvl-Team. If not, see <https://www.gnu.org/licenses/>.
+ * along with uvl. If not, see <https://www.gnu.org/licenses/>.
  *
  * See <https://github.com/FeatureIDE/FeatJAR-uvl> for further information.
  */
@@ -22,6 +22,7 @@ package de.featjar.feature.model.io;
 
 import de.featjar.FormatTest;
 import de.featjar.analysis.sat4j.computation.ComputeSatisfiableSAT4J;
+import de.featjar.base.FeatJAR;
 import de.featjar.base.computation.Computations;
 import de.featjar.base.data.Result;
 import de.featjar.base.data.identifier.Identifiers;
@@ -96,16 +97,16 @@ public class UVLFeatureModelFormatTest {
         UVLFeatureModelFormatTest.featureModel = featureModel;
     }
 
-    // @Test
+    @Test
     void testFixtures() {
         FormatTest.testParseAndSerialize("uvl/ABC-nAnBnC", new UVLFeatureModelFormat());
         FormatTest.testParseAndSerialize("uvl/nA", new UVLFeatureModelFormat());
         FormatTest.testParseAndSerialize("uvl/nAB", new UVLFeatureModelFormat());
     }
 
-    // @Test
+    @Test
     void testUVLFeatureModelFormatSerialize() throws IOException {
-        UVLFeatureModelFormat format = new UVLFeatureModelFormat();
+    	UVLFeatureModelFormat format = new UVLFeatureModelFormat();
         Result<String> featureModelString = format.serialize(featureModel);
 
         if (featureModelString.isEmpty()) {
@@ -113,14 +114,10 @@ public class UVLFeatureModelFormatTest {
         }
 
         String expected = new String(
-                Files.readAllBytes(Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl")),
-                StandardCharsets.UTF_8);
+                Files.readAllBytes(Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl")), StandardCharsets.UTF_8);
         Assertions.assertEquals(expected, featureModelString.get());
-
-        Assertions.assertTrue(
-                Objects.equals(
-                        expected.replaceAll("\\r", ""), featureModelString.get().replaceAll("\\r", "")),
-                "Serialized content does not match the original file content");
+        Assertions.assertTrue(Objects.equals(expected.replaceAll("\\r", ""), featureModelString.get().replaceAll("\\r", "")), "Serialized content does not match the original file content");
+    
     }
 
     @Test
@@ -208,12 +205,12 @@ public class UVLFeatureModelFormatTest {
 
         Assertions.assertFalse(notEquivalent);
     }
-
+    
     @Test
     void testUVLFileToFeatureModelToUVLFile() throws IOException {
 
-        Path uvlFile = Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl");
-
+        Path uvlFile = Path.of("src", "test", "resources", "uvl", "featureModelSerializeResult.uvl" );
+         
         String fileContent = new String(Files.readAllBytes(uvlFile), StandardCharsets.UTF_8);
 
         IFormat<IFeatureModel> format = new UVLFeatureModelFormat();
@@ -226,72 +223,64 @@ public class UVLFeatureModelFormatTest {
 
         Assertions.assertTrue(serializedResult.isPresent(), "Serialization of IFeatureModel failed");
         String serializedContent = serializedResult.get();
-
-        Assertions.assertTrue(
-                Objects.equals(fileContent.replaceAll("\\r", ""), serializedContent.replaceAll("\\r", "")),
-                "Serialized content does not match the original file content");
+        
+        Assertions.assertTrue(Objects.equals(fileContent.replaceAll("\\r", ""), serializedContent.replaceAll("\\r", "")), "Serialized content does not match the original file content");
     }
-
-    // @Test
-    // WIP: Constraints after parsing are wrong
+    
+    //@Test
+    //TODO: Constraints after parsing are wrong
     void testFeatureModeltoUVLtoFeatureModel() throws IOException {
+    	
+    	IFeatureModel originalFeatureModel = featureModel;
+    	
+    	IFormat<IFeatureModel> format = new UVLFeatureModelFormat();
+    	
+    	Result<String> serializedFeatureModel = format.serialize(originalFeatureModel);
+    	Assertions.assertTrue(serializedFeatureModel.isPresent(), "Serialization of IFeatureModel failed");
+    	
+    	String serializedFeatureModelString = serializedFeatureModel.get();
+    	
+    	Result<IFeatureModel> parsedFeatureModelResult = format.parse(new StringInputMapper(serializedFeatureModelString, StandardCharsets.UTF_8, "uvl"));
+    	Assertions.assertTrue(parsedFeatureModelResult.isPresent(), "Parsing of UVL file failed");
+    	
+    	IFeatureModel parsedFeatureModel = parsedFeatureModelResult.get();
 
-        IFeatureModel originalFeatureModel = featureModel;
-
-        IFormat<IFeatureModel> format = new UVLFeatureModelFormat();
-
-        Result<String> serializedFeatureModel = format.serialize(originalFeatureModel);
-        Assertions.assertTrue(serializedFeatureModel.isPresent(), "Serialization of IFeatureModel failed");
-
-        String serializedFeatureModelString = serializedFeatureModel.get();
-
-        Result<IFeatureModel> parsedFeatureModelResult =
-                format.parse(new StringInputMapper(serializedFeatureModelString, StandardCharsets.UTF_8, "uvl"));
-        Assertions.assertTrue(parsedFeatureModelResult.isPresent(), "Parsing of UVL file failed");
-
-        IFeatureModel parsedFeatureModel = parsedFeatureModelResult.get();
-
-        String originalContraints = "";
-        int remainingLength = serializedFeatureModelString.length();
-        for (int i = 0; i < serializedFeatureModelString.length(); i++) {
-            remainingLength--;
-            if (serializedFeatureModelString.charAt(i) == '(') {
-                while (remainingLength > 0) {
-                    remainingLength--;
-                    i++;
-                    switch (serializedFeatureModelString.charAt(i)) {
-                        case '&':
-                            originalContraints += "and, ";
-                            break;
-                        case '<':
-                            originalContraints += "biimplies, ";
-                            i += 2;
-                            remainingLength -= 2;
-                            break;
-                        case '=':
-                            originalContraints += "implies, ";
-                            i++;
-                            remainingLength--;
-                            break;
-                        case '!':
-                            originalContraints += "..., ";
-                            break;
-                    }
-                }
-            }
-        }
-
-        originalContraints = originalContraints.substring(0, originalContraints.length() - 2);
-        System.out.println(originalContraints);
-
-        List<IConstraint> originalConstraintsList =
-                originalFeatureModel.getConstraints().stream().collect(Collectors.toList());
-        List<IConstraint> parsedConstraintsList =
-                parsedFeatureModel.getConstraints().stream().collect(Collectors.toList());
-
-        Assertions.assertEquals(
-                originalConstraintsList,
-                parsedConstraintsList,
-                "Parsed Constraints does not match the original Constraints");
+    	String originalContraints = ""; 
+    	int remainingLength = serializedFeatureModelString.length();
+    	for(int i = 0; i < serializedFeatureModelString.length(); i++) {
+    		remainingLength--;
+    		if(serializedFeatureModelString.charAt(i) == '(') {
+    			while(remainingLength > 0) {
+    				remainingLength--;
+    				i++;
+    				switch(serializedFeatureModelString.charAt(i)) {
+    					case '&':
+    						originalContraints += "and, "; 
+    						break;
+    					case '<':
+    						originalContraints += "biimplies, ";
+    						i += 2;
+    						remainingLength -= 2; 
+    						break;
+    					case '=':
+    						originalContraints += "implies, ";
+    						i++;
+    						remainingLength--;
+    						break;
+    					case '!':
+    						originalContraints += "..., ";
+    						break;
+    				}
+    			}
+    		}
+    	}
+    	
+    	originalContraints = originalContraints.substring(0,originalContraints.length()-2);
+    	
+    	List<IConstraint> originalConstraintsList = originalFeatureModel.getConstraints().stream().collect(Collectors.toList());
+    	List<IConstraint> parsedConstraintsList = parsedFeatureModel.getConstraints().stream().collect(Collectors.toList());
+    	
+    	Assertions.assertEquals(originalConstraintsList, parsedConstraintsList, "Parsed Constraints does not match the original Constraints");
     }
+    
 }
